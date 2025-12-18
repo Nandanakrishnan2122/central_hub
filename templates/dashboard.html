@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Central Hub{% endblock %}
+
+{% block content %}
+<h3 class="mb-4 text-center">Central Hub Dashboard</h3>
+
+<div class="row g-4">
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <h6 class="card-title">Total Devices</h6>
+                <h2>{{ device_count }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <h6 class="card-title">Reported Issues</h6>
+                <h2>{{ issue_count }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <h6 class="card-title mt-3">Departments</h6>
+            <h2>{{ department_count }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <h6 class="card-title mt-3">Users</h6>
+            <h2>{{ user_count }}</h2>
+        </div>
+    </div>
+</div>
+
+<hr class="my-4">
+
+<div class="row g-4 text-center">
+    <div class="col-md-4">
+        <a href="{% url 'device_list' %}" class="btn btn-primary w-100">
+            View Devices
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <a href="{% url 'issue_list' %}" class="btn btn-primary w-100">
+            View Issues
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <a href="{% url 'department_list' %}" class="btn btn-primary w-100">
+            View Departments
+        </a>
+    </div>
+</div>
+{% endblock %}
