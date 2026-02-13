@@ -6,6 +6,7 @@ urlpatterns = [
     path('index/', views.index, name='index'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
+    path('register/', views.register_view, name='register'),
 
     path('dashboard/', views.dashboard, name='dashboard'),
 
@@ -13,6 +14,8 @@ urlpatterns = [
 
     path('devices/', views.device_list, name='device_list'),
     path('device/<int:device_id>/', views.device_detail, name='device_detail'),
+    path('devices/add/', views.add_device, name='add_device'),
+
 
     path('device-locations/', views.device_location_list, name='device_location_list'),
 

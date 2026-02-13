@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm ,UserCreationForm
 from .models import (
     Department,
     Designation,
@@ -16,6 +16,11 @@ from .models import (
 class LoginForm(AuthenticationForm):
     username = forms.CharField(max_length=150)
     password = forms.CharField(widget=forms.PasswordInput)
+
+class RegisterForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ['username', 'password1', 'password2']
 
 
 class DepartmentForm(forms.ModelForm):
@@ -58,9 +63,9 @@ class DeviceForm(forms.ModelForm):
     class Meta:
         model = Device
         fields = [
-            'label_no',
-            'device_type',
-            'device_specification',
+            'label_no',          
+            'device_type',       
+            'device_image',        
             'device_brand',
             'device_model',
             'device_cost',

@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 
-{% block title %}Login - Central Hub{% endblock %}
+{% block title %}Register - Central Hub{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-5">
-        <h3 class="text-center mb-4">Login</h3>
+        <h3 class="text-center mb-4">Register</h3>
 
         <form method="post">
             {% csrf_token %}
@@ -17,28 +17,30 @@
 
             <div class="mb-3">
                 <label class="form-label">Password</label>
-                <input type="password" name="password" class="form-control" required>
+                <input type="password" name="password1" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Confirm Password</label>
+                <input type="password" name="password2" class="form-control" required>
             </div>
 
             {% if form.errors %}
                 <div class="alert alert-danger">
-                    Invalid username or password
+                    {{ form.errors }}
                 </div>
             {% endif %}
 
             <div class="d-grid">
                 <button type="submit" class="btn btn-primary">
-                    Login
+                    Register
                 </button>
             </div>
 
             <div class="text-center mt-3">
-                <span>New user?</span>
-                <a href="{% url 'register' %}" class="fw-bold">
-                    Register here
-                </a>
+                <span>Already have an account? </span>
+                <a href="{% url 'login' %}">Login</a>
             </div>
-
         </form>
     </div>
 </div>

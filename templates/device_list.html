@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Devices | Central Hub{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold">Device List</h4>
+
+    <a href="{% url 'add_device' %}" class="btn btn-primary btn-sm">
+        + Add Device
+    </a>
+    
+</div>
+
+{% if devices %}
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Label No</th>
+                    <th>Type</th>
+                    <th>Specification</th>
+                    <th>Brand</th>
+                    <th>Model</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for device in devices %}
+                    <tr>
+                        <td>{{ device.label_no }}</td>
+                        <td>{{ device.device_type }}</td>
+                        <td>{{ device.device_specification }}</td>
+                        <td>{{ device.device_brand }}</td>
+                        <td>{{ device.device_model }}</td>
+                        <td>{{ device.status }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-info text-center">
+        No devices added yet.
+    </div>
+{% endif %}
+{% endblock %}

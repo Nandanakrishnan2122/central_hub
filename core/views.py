@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
-
+from .forms import RegisterForm ,DeviceForm
 from .models import (
     Department,
     Designation,
@@ -36,6 +36,17 @@ def logout_view(request):
     logout(request)
     return redirect("login")
 
+def register_view(request):
+    form = RegisterForm()
+
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('dashboard')
+
+    return render(request, 'register.html', {'form': form})
 
 # -------------------------
 # DASHBOARD
@@ -135,3 +146,14 @@ def device_spec_list(request):
     return render(request, "device_spec_list.html", {"specs": specs})
 def index(request):
     return render(request, 'index.html')
+
+def add_device(request):
+    if request.method == 'POST':
+        form = DeviceForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('device_list')
+    else:
+        form = DeviceForm()
+
+    return render(request, 'add_device.html', {'form': form})

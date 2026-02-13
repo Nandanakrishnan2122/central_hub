@@ -1,63 +1,54 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard - Central Hub{% endblock %}
+{% block title %}Dashboard | Central Hub{% endblock %}
 
 {% block content %}
-<h3 class="mb-4 text-center">Central Hub Dashboard</h3>
 
-<div class="row g-4">
+
+{% if user.is_authenticated %}
+<h3 class="mb-4 text-center fw-bold">Welcome back, <strong>{{ user.username|title}}</h3>
+{% endif %}
+
+<div class="row g-4 justify-content-center">
+
+    <!-- Devices -->
     <div class="col-md-3">
-        <div class="card text-center shadow-sm">
+        <div class="card text-center shadow-sm h-100">
             <div class="card-body">
-                <h6 class="card-title">Total Devices</h6>
-                <h2>{{ device_count }}</h2>
+                <h6 class="card-title text-dark">Total Devices</h6>
+                <h2 class="fw-bold">{{ device_count }}</h2>
+                <a href="{% url 'device_list' %}" class="btn btn-primary btn-sm mt-3">
+                    View Devices
+                </a>
             </div>
         </div>
     </div>
 
+    <!-- Issues -->
     <div class="col-md-3">
-        <div class="card text-center shadow-sm">
+        <div class="card text-center shadow-sm h-100">
             <div class="card-body">
-                <h6 class="card-title">Reported Issues</h6>
-                <h2>{{ issue_count }}</h2>
+                <h6 class="card-title text-dark">Reported Issues</h6>
+                <h2 class="fw-bold">{{ issue_count }}</h2>
+                <a href="{% url 'issue_list' %}" class="btn btn-primary btn-sm mt-3">
+                    View Issues
+                </a>
             </div>
         </div>
     </div>
 
+    <!-- Users -->
     <div class="col-md-3">
-        <div class="card text-center shadow-sm">
-            <h6 class="card-title mt-3">Departments</h6>
-            <h2>{{ department_count }}</h2>
+        <div class="card text-center shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title text-dark">Total Users</h6>
+                <h2 class="fw-bold">{{ user_count }}</h2>
+                <a href="{% url 'admin:index' %}" class="btn btn-primary btn-sm mt-3">
+                    View Users
+                </a>
+            </div>
         </div>
     </div>
 
-    <div class="col-md-3">
-        <div class="card text-center shadow-sm">
-            <h6 class="card-title mt-3">Users</h6>
-            <h2>{{ user_count }}</h2>
-        </div>
-    </div>
-</div>
-
-<hr class="my-4">
-
-<div class="row g-4 text-center">
-    <div class="col-md-4">
-        <a href="{% url 'device_list' %}" class="btn btn-primary w-100">
-            View Devices
-        </a>
-    </div>
-
-    <div class="col-md-4">
-        <a href="{% url 'issue_list' %}" class="btn btn-primary w-100">
-            View Issues
-        </a>
-    </div>
-
-    <div class="col-md-4">
-        <a href="{% url 'department_list' %}" class="btn btn-primary w-100">
-            View Departments
-        </a>
-    </div>
 </div>
 {% endblock %}

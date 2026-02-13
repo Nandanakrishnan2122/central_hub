@@ -84,8 +84,11 @@ class Device(models.Model):
 
     status = models.CharField(max_length=50)
 
+    device_image = models.ImageField(upload_to='devices/', null=True, blank=True)  
+
     def __str__(self):
         return self.label_no
+
 
 
 # -------------------------
