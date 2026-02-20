@@ -62,17 +62,22 @@ class TypeSpecForm(forms.ModelForm):
 class DeviceForm(forms.ModelForm):
     class Meta:
         model = Device
-        fields = [
-            'label_no',          
-            'device_type',       
-            'device_image',        
-            'device_brand',
-            'device_model',
-            'device_cost',
-            'manufactured_year',
-            'purchased_date',
-            'status'
-        ]
+        fields = '__all__'
+        widgets = {
+            'label_no': forms.TextInput(attrs={'class': 'form-control'}),
+            'device_type': forms.Select(attrs={'class': 'form-select'}),
+            'device_specification': forms.Select(attrs={'class': 'form-select'}),
+            'device_brand': forms.TextInput(attrs={'class': 'form-control'}),
+            'device_model': forms.TextInput(attrs={'class': 'form-control'}),
+            'device_cost': forms.NumberInput(attrs={'class': 'form-control'}),
+            'manufactured_year': forms.NumberInput(attrs={'class': 'form-control'}),
+            'purchased_date': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+            'status': forms.TextInput(attrs={'class': 'form-control'}),
+            'device_image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        }
 
 
 class DeviceLocationForm(forms.ModelForm):
@@ -101,3 +106,14 @@ class DeviceIssuesForm(forms.ModelForm):
             'precautions',
             'cost'
         ]
+class ReportIssueForm(forms.ModelForm):
+    class Meta:
+        model = DeviceIssues
+        fields = ['issue_description']
+        widgets = {
+            'issue_description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Describe the issue clearly...'
+            }),
+        }

@@ -24,4 +24,5 @@ urlpatterns = [
 
     path('device-types/', views.device_type_list, name='device_type_list'),
     path('device-specs/', views.device_spec_list, name='device_spec_list'),
+    path('users/', views.user_list, name='user_list'),
 ]

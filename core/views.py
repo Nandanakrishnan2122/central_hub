@@ -157,3 +157,32 @@ def add_device(request):
         form = DeviceForm()
 
     return render(request, 'add_device.html', {'form': form})
+@login_required
+def user_list(request):
+    users = User.objects.select_related("department", "designation")
+    return render(request, "user.html", {"users": users})
+from datetime import date
+from .forms import ReportIssueForm
+
+@login_required
+def report_issue(request, device_id):
+    device = get_object_or_404(Device, device_id=device_id)
+
+    if request.method == "POST":
+        form = ReportIssueForm(request.POST)
+        if form.is_valid():
+            issue = form.save(commit=False)
+            issue.device = device
+            issue.reported_by = request.user
+            issue.report_date = date.today()
+            issue.status = "Reported"
+            issue.save()
+
+            return redirect("issue_list")
+    else:
+        form = ReportIssueForm()
+
+    return render(request, "report_issue.html", {
+        "form": form,
+        "device": device
+    })

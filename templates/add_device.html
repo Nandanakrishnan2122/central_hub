@@ -12,13 +12,18 @@
             {% csrf_token %}
 
             <div class="mb-3">
-                <label class="form-label">Device Name (Label No)</label>
-                <input type="text" name="label_no" class="form-control" required>
+                <label class="form-label">Device Label No</label>
+                {{ form.label_no }}
             </div>
 
             <div class="mb-3">
                 <label class="form-label">Device Type</label>
                 {{ form.device_type }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Device Specification</label>
+                {{ form.device_specification }}
             </div>
 
             <div class="mb-3">
@@ -29,6 +34,21 @@
             <div class="mb-3">
                 <label class="form-label">Model</label>
                 {{ form.device_model }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Device Cost</label>
+                {{ form.device_cost }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Manufactured Year</label>
+                {{ form.manufactured_year }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Purchased Date</label>
+                {{ form.purchased_date }}
             </div>
 
             <div class="mb-3">
