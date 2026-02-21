@@ -106,29 +106,30 @@ def device_location_list(request):
 # -------------------------
 # DEVICE ISSUES
 # -------------------------
-@login_required
-def issue_list(request):
-    issues = DeviceIssues.objects.select_related("device", "reported_by")
-    return render(request, "issue_list.html", {"issues": issues})
-
+from .forms import ReportIssueForm
 
 @login_required
 def report_issue(request, device_id):
     device = get_object_or_404(Device, device_id=device_id)
 
     if request.method == "POST":
-        description = request.POST.get("issue_description")
+        form = ReportIssueForm(request.POST)
+        if form.is_valid():
+            issue = form.save(commit=False)
+            issue.device = device
+            issue.reported_by = request.user
+            issue.status = "Reported"
+            issue.save()
 
-        DeviceIssues.objects.create(
-            device=device,
-            reported_by=request.user,
-            issue_description=description,
-            report_date=request.POST.get("report_date"),
-            status="Reported",
-        )
-        return redirect("issue_list")
+            return redirect("issue_detail", issue_id=issue.issue_id)
 
-    return render(request, "report_issue.html", {"device": device})
+    else:
+        form = ReportIssueForm()
+
+    return render(request, "report_issue.html", {
+        "device": device,
+        "form": form
+    })
 
 
 # -------------------------
@@ -161,28 +162,14 @@ def add_device(request):
 def user_list(request):
     users = User.objects.select_related("department", "designation")
     return render(request, "user.html", {"users": users})
-from datetime import date
-from .forms import ReportIssueForm
+
 
 @login_required
-def report_issue(request, device_id):
-    device = get_object_or_404(Device, device_id=device_id)
+def issue_list(request):
+    issues = DeviceIssues.objects.select_related("device", "reported_by")
+    return render(request, "issue_list.html", {"issues": issues})
 
-    if request.method == "POST":
-        form = ReportIssueForm(request.POST)
-        if form.is_valid():
-            issue = form.save(commit=False)
-            issue.device = device
-            issue.reported_by = request.user
-            issue.report_date = date.today()
-            issue.status = "Reported"
-            issue.save()
-
-            return redirect("issue_list")
-    else:
-        form = ReportIssueForm()
-
-    return render(request, "report_issue.html", {
-        "form": form,
-        "device": device
-    })
+@login_required
+def issue_detail(request, issue_id):
+    issue = get_object_or_404(DeviceIssues, issue_id=issue_id)
+    return render(request, "issue_detail.html", {"issue": issue})

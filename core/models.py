@@ -114,7 +114,7 @@ class DeviceIssues(models.Model):
     reported_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     issue_description = models.TextField()
-    report_date = models.DateField()
+    report_date = models.DateField(auto_now_add=True)
 
     repaired_date = models.DateField(null=True, blank=True)
     repaired_description = models.TextField(null=True, blank=True)

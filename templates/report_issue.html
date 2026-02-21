@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h4 class="fw-bold mb-4 text-center">Report Issue</h4>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+
+        <!-- Device Details -->
+        <div class="card shadow-sm p-4 mb-4">
+            <h5>Device Details</h5>
+
+            <div><strong>Label No:</strong> {{ device.label_no }}</div>
+            <div><strong>Type:</strong> {{ device.device_type }}</div>
+            <div><strong>Brand:</strong> {{ device.device_brand }}</div>
+            <div><strong>Model:</strong> {{ device.device_model }}</div>
+        </div>
+
+        <!-- Issue Form -->
+        <div class="card shadow-sm p-4">
+            <h5>Issue Details</h5>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label">Issue Description</label>
+                    {{ form.issue_description }}
+                </div>
+
+                <button type="submit" class="btn btn-danger">
+                    Submit Issue
+                </button>
+            </form>
+        </div>
+
+        
+    </div>
+</div>
+{% endblock %}  

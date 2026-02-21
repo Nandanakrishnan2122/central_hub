@@ -23,6 +23,7 @@
                     <th>Brand</th>
                     <th>Model</th>
                     <th>Status</th>
+                    <th>Action</th> <!-- NEW COLUMN -->
                 </tr>
             </thead>
             <tbody>
@@ -34,6 +35,12 @@
                         <td>{{ device.device_brand }}</td>
                         <td>{{ device.device_model }}</td>
                         <td>{{ device.status }}</td>
+                        <td>
+                            <a href="{% url 'report_issue' device.device_id %}" 
+                               class="btn btn-danger btn-sm">
+                                Report Issue
+                            </a>
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>

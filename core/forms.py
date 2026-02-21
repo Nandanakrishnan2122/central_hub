@@ -99,21 +99,24 @@ class DeviceIssuesForm(forms.ModelForm):
         fields = [
             'device',
             'issue_description',
-            'report_date',
             'status',
             'repaired_date',
             'repaired_description',
             'precautions',
             'cost'
         ]
+
+
 class ReportIssueForm(forms.ModelForm):
+
     class Meta:
         model = DeviceIssues
         fields = ['issue_description']
+
         widgets = {
             'issue_description': forms.Textarea(attrs={
                 'class': 'form-control',
-                'rows': 4,
+                'rows': 3,
                 'placeholder': 'Describe the issue clearly...'
-            }),
+            })
         }

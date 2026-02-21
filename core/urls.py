@@ -21,6 +21,7 @@ urlpatterns = [
 
     path('issues/', views.issue_list, name='issue_list'),
     path('issue/report/<int:device_id>/', views.report_issue, name='report_issue'),
+    path('issue/<int:issue_id>/', views.issue_detail, name='issue_detail'),
 
     path('device-types/', views.device_type_list, name='device_type_list'),
     path('device-specs/', views.device_spec_list, name='device_spec_list'),

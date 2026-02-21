@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h4 class="fw-bold mb-4 text-center">Issue Details</h4>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+
+        <div class="card shadow-sm p-4">
+
+            <h5>Device Information</h5>
+            <p><strong>Label No:</strong> {{ issue.device.label_no }}</p>
+            <p><strong>Type:</strong> {{ issue.device.device_type }}</p>
+            <p><strong>Brand:</strong> {{ issue.device.device_brand }}</p>
+            <p><strong>Model:</strong> {{ issue.device.device_model }}</p>
+
+            <hr>
+
+            <h5>Issue Information</h5>
+            <p><strong>Description:</strong> {{ issue.issue_description }}</p>
+            <p><strong>Status:</strong> {{ issue.status }}</p>
+            <p><strong>Reported By:</strong> {{ issue.reported_by }}</p>
+            <p><strong>Report Date:</strong> {{ issue.report_date }}</p>
+
+            <div class="mt-4">
+                <a href="{% url 'device_list' %}" 
+                   class="btn btn-secondary">
+                    ← Go Back to Device List
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+{% endblock %}
