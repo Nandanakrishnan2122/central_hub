@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Solved Issue Details{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="card shadow p-4">
+
+        <h4 class="fw-bold mb-4 text-center">
+            Solved Issue Details
+        </h4>
+
+        <table class="table table-bordered">
+
+            <tr>
+                <th>Device</th>
+                <td>{{ issue.device.label_no }}</td>
+            </tr>
+
+            <tr>
+                <th>Problem Description</th>
+                <td>{{ issue.issue_description }}</td>
+            </tr>
+
+            <tr>
+                <th>Reported By</th>
+                <td>{{ issue.reported_by }}</td>
+            </tr>
+
+            <tr>
+                <th>Reported Date</th>
+                <td>{{ issue.report_date }}</td>
+            </tr>
+
+            <tr>
+                <th>Repaired Description</th>
+                <td>{{ issue.repaired_description }}</td>
+            </tr>
+
+            <tr>
+                <th>Repaired Date</th>
+                <td>{{ issue.repaired_date }}</td>
+            </tr>
+
+            <tr>
+                <th>Cost</th>
+                <td>₹ {{ issue.cost }}</td>
+            </tr>
+
+        </table>
+
+        <div class="text-center mt-3">
+
+            <a href="{% url 'edit_solved_issue' issue.issue_id %}"
+               class="btn btn-warning">
+                Edit
+            </a>
+
+            <a href="{% url 'solved_issue_list' %}"
+               class="btn btn-secondary">
+                Back
+            </a>
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

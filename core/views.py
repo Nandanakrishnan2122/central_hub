@@ -55,12 +55,19 @@ def register_view(request):
 def dashboard(request):
     context = {
         "device_count": Device.objects.count(),
-        "issue_count": DeviceIssues.objects.count(),
+
+        "issue_count": DeviceIssues.objects.exclude(
+            status__iexact="Solved"
+        ).count(),
+        "solved_issue_count": DeviceIssues.objects.filter(
+            status__iexact="Solved"
+        ).count(),
+
         "department_count": Department.objects.count(),
         "user_count": User.objects.count(),
     }
-    return render(request, "dashboard.html", context)
 
+    return render(request, "dashboard.html", context)
 
 # -------------------------
 # DEPARTMENT
@@ -92,30 +99,64 @@ def department_list(request):
 # -------------------------
 # ADD_DEPARTMENT 
 # -------------------------
+from .models import Department, User
 from django.shortcuts import render, redirect
-from .models import Department
 
 def add_department(request):
+    teachers = User.objects.all()  # or filter by designation if needed
+
     if request.method == "POST":
-        name = request.POST.get("department_name")
+        department_name = request.POST.get('department_name')
+        teacher_id = request.POST.get('teacher_in_charge')
 
-        if name:
-            Department.objects.create(department_name=name)
-            return redirect("department_list")
+        teacher = User.objects.get(id=teacher_id) if teacher_id else None
 
-    return render(request, "add_department.html")
+        Department.objects.create(
+            department_name=department_name,
+            teacher_in_charge=teacher
+        )
+
+        return redirect('department_list')
+
+    return render(request, 'add_department.html', {'teachers': teachers})
 
 
-from django.shortcuts import get_object_or_404
+
+from django.shortcuts import get_object_or_404, redirect
+from .models import Department
 
 def delete_department(request, pk):
     department = get_object_or_404(Department, pk=pk)
 
     if request.method == "POST":
         department.delete()
-        return redirect("department_list")
+        return redirect('department_list')
 
-    return redirect("department_list")
+    return render(request, 'delete_department.html', {'department': department})
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Department, User
+
+def edit_department(request, pk):
+    department = get_object_or_404(Department, pk=pk)
+    teachers = User.objects.all()
+
+    if request.method == "POST":
+        department.department_name = request.POST.get('department_name')
+        teacher_id = request.POST.get('teacher_in_charge')
+
+        if teacher_id:
+            department.teacher_in_charge = User.objects.get(id=teacher_id)
+        else:
+            department.teacher_in_charge = None
+
+        department.save()
+        return redirect('department_list')
+
+    return render(request, 'edit_department.html', {
+        'department': department,
+        'teachers': teachers
+    })
 
 # -------------------------
 # DEVICE
@@ -188,6 +229,27 @@ def report_issue(request, device_id):
         "form": form
     })
 
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.utils import timezone
+from .models import DeviceIssues   # IMPORTANT
+
+def issue_solved(request, pk):
+    issue = get_object_or_404(DeviceIssues, issue_id=pk)
+
+    if request.method == "POST":
+        issue.status = "Solved"
+        issue.repaired_date = timezone.now().date()
+        issue.repaired_description = request.POST.get("repaired_description")
+        issue.cost = request.POST.get("cost")
+        issue.save()
+
+        return redirect('solved_issue_list')
+
+    return render(request, 'issue_solved.html', {
+        'issue': issue
+    })
 
 # -------------------------
 # DEVICE TYPE & SPEC
@@ -294,19 +356,95 @@ def edit_user(request, pk):
     })
 
 
-@login_required
+from django.db.models import Q
+
 def issue_list(request):
-    issues = DeviceIssues.objects.select_related("device", "reported_by")
-    return render(request, "issue_list.html", {"issues": issues})
+    issues = DeviceIssues.objects.exclude(status__iexact="Solved")
+
+    search = request.GET.get('search')
+    sort = request.GET.get('sort')
+
+    if search:
+        issues = issues.filter(
+            Q(issue_description__icontains=search) |
+            Q(status__icontains=search)
+        )
+
+    if sort == "date_asc":
+        issues = issues.order_by("report_date")
+    elif sort == "date_desc":
+        issues = issues.order_by("-report_date")
+    elif sort == "status":
+        issues = issues.order_by("status")
+
+    return render(request, "issue_list.html", {
+        "issues": issues
+    })
+
+from django.db.models import Q
+from .models import DeviceIssues
+
+def solved_issue_list(request):
+    issues = DeviceIssues.objects.filter(status__iexact="Solved").order_by("-repaired_date")
+
+    search = request.GET.get("search")
+
+    if search:
+        issues = issues.filter(
+            Q(issue_description__icontains=search) |
+            Q(device__label_no__icontains=search)
+        )
+
+    return render(request, "solved_issue_list.html", {
+        "issues": issues
+    })
+
+def edit_solved_issue(request, pk):
+    issue = get_object_or_404(DeviceIssues, issue_id=pk)
+
+    if request.method == "POST":
+        issue.issue_description = request.POST.get("issue_description")
+        issue.repaired_description = request.POST.get("repaired_description")
+        issue.cost = request.POST.get("cost")
+        issue.repaired_date = request.POST.get("repaired_date")
+        issue.save()
+
+        return redirect('solved_issue_list')
+
+    return render(request, "edit_solved_issue.html", {
+        "issue": issue
+    })
+
+def delete_solved_issue(request, pk):
+    issue = get_object_or_404(DeviceIssues, issue_id=pk)
+
+    if request.method == "POST":
+        issue.delete()
+        return redirect('solved_issue_list')
+
+    return redirect('solved_issue_list')
+
+def solved_issue_detail(request, pk):
+    issue = get_object_or_404(DeviceIssues, issue_id=pk)
+
+    return render(request, "solved_issue_detail.html", {
+        "issue": issue
+    })
+
 
 from django.shortcuts import render, get_object_or_404
 from .models import Device, DeviceIssues
 from django.db.models import Q
 
+from django.db.models import Q
+
 def device_issues(request, device_id):
     device = get_object_or_404(Device, pk=device_id)
 
-    issues = DeviceIssues.objects.filter(device=device)
+    issues = DeviceIssues.objects.filter(
+        device=device,
+        status__in=["Pending", "In Progress"]
+    )
 
     search = request.GET.get('search')
     sort = request.GET.get('sort')
@@ -326,7 +464,7 @@ def device_issues(request, device_id):
     elif sort == "status":
         issues = issues.order_by("status")
 
-    return render(request, "device_issues.html", {
+    return render(request, "issue_list.html", {
         "device": device,
         "issues": issues
     })

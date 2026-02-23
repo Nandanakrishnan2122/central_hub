@@ -4,8 +4,6 @@
 
 {% block content %}
 
-
-
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="fw-bold">Department List</h4>
 
@@ -23,7 +21,6 @@
 <!-- 🔎 Search & Sort Form -->
 <form method="GET" class="row g-3 mb-4">
 
-    <!-- Search -->
     <div class="col-md-4">
         <input type="text" 
                name="search" 
@@ -32,7 +29,6 @@
                value="{{ request.GET.search }}">
     </div>
 
-    <!-- Sort -->
     <div class="col-md-3">
         <select name="sort" class="form-select">
             <option value="">Sort By</option>
@@ -61,6 +57,7 @@
             <tr>
                 <th>#</th>
                 <th>Department Name</th>
+                <th>Teacher In Charge</th>
                 <th class="text-center">Action</th>
             </tr>
         </thead>
@@ -68,10 +65,29 @@
             {% for department in departments %}
             <tr>
                 <td>{{ forloop.counter }}</td>
+
                 <td>{{ department.department_name }}</td>
+
+                <!-- 👨‍🏫 Teacher Column -->
+                <td>
+                    {% if department.teacher_in_charge %}
+                        {{ department.teacher_in_charge.username }}
+                    {% else %}
+                        <span class="text-muted">Not Assigned</span>
+                    {% endif %}
+                </td>
+
+                <!-- ✏ Edit + 🗑 Delete -->
                 <td class="text-center">
-        
-                    <form method="POST" action="{% url 'delete_department' department.department_id %}" style="display:inline;">
+
+                    <a href="{% url 'edit_department' department.department_id %}" 
+                       class="btn btn-warning btn-sm">
+                        Edit
+                    </a>
+
+                    <form method="POST" 
+                          action="{% url 'delete_department' department.department_id %}" 
+                          style="display:inline;">
                         {% csrf_token %}
                         <button type="submit" 
                                 class="btn btn-danger btn-sm"
@@ -79,7 +95,7 @@
                             Delete
                         </button>
                     </form>
-        
+
                 </td>
             </tr>
             {% endfor %}

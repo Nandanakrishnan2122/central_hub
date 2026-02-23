@@ -5,13 +5,22 @@ from django.contrib.auth.models import AbstractUser
 # -------------------------
 # DEPARTMENT
 # -------------------------
+from django.conf import settings
+
 class Department(models.Model):
     department_id = models.AutoField(primary_key=True)
     department_name = models.CharField(max_length=100, unique=True)
 
+    teacher_in_charge = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="departments_in_charge"
+    )
+
     def __str__(self):
         return self.department_name
-
 
 # -------------------------
 # DESIGNATION
@@ -109,18 +118,70 @@ class DeviceLocation(models.Model):
 # -------------------------
 # DEVICE ISSUES
 # -------------------------
+from django.db import models
+from django.conf import settings
+from django.utils import timezone
+
+
 class DeviceIssues(models.Model):
     issue_id = models.AutoField(primary_key=True)
-    device = models.ForeignKey(Device, on_delete=models.CASCADE)
-    reported_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+    device = models.ForeignKey(
+        'Device',
+        on_delete=models.CASCADE,
+        related_name="issues"
+    )
+
+    reported_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="reported_device_issues"
+    )
 
     issue_description = models.TextField()
+
     report_date = models.DateField(auto_now_add=True)
 
+    # 🔧 Repair / Solve Details
     repaired_date = models.DateField(null=True, blank=True)
+    
+    repaired_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="repaired_device_issues"
+    )
+
     repaired_description = models.TextField(null=True, blank=True)
 
     precautions = models.TextField(null=True, blank=True)
-    cost = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
-    status = models.CharField(max_length=50)
+    cost = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('In Progress', 'In Progress'),
+        ('Solved', 'Solved'),
+    ]
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='Pending'
+    )
+
+    def mark_as_solved(self, user):
+        self.status = 'Solved'
+        self.repaired_date = timezone.now().date()
+        self.repaired_by = user
+        self.save()
+
+    def __str__(self):
+        return f"{self.device.label_no} - {self.status}"

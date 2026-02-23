@@ -37,6 +37,22 @@
         </div>
     </div>
 
+    <!-- Solved Issues -->
+<div class="col-md-3">
+    <div class="card text-center shadow-sm h-100">
+        <div class="card-body">
+            <h6 class="card-title text-dark">Solved Issues</h6>
+            <h2 class="fw-bold">
+                {{ solved_issue_count }}
+            </h2>
+            <a href="{% url 'solved_issue_list' %}" 
+               class="btn btn-primary btn-sm mt-3">
+                View Solved Issues
+            </a>
+        </div>
+    </div>
+</div>
+
     <!-- Users -->
     <div class="col-md-3">
         <div class="card text-center shadow-sm h-100">
