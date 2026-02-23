@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Device Details | Central Hub{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="card shadow-lg p-4">
+        <h4 class="fw-bold mb-4 text-center">Device Details</h4>
+
+        <table class="table table-bordered">
+            <tr>
+                <th width="30%">Label No</th>
+                <td>{{ device.label_no }}</td>
+            </tr>
+            <tr>
+                <th>Device Type</th>
+                <td>{{ device.device_type }}</td>
+            </tr>
+            <tr>
+                <th>Specification</th>
+                <td>{{ device.device_specification }}</td>
+            </tr>
+            <tr>
+                <th>Brand</th>
+                <td>{{ device.device_brand }}</td>
+            </tr>
+            <tr>
+                <th>Model</th>
+                <td>{{ device.device_model }}</td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td>
+                    <span class="badge bg-info">
+                        {{ device.status }}
+                    </span>
+                </td>
+            </tr>
+        </table>
+        <div class="text-center mt-4">
+    
+            <a href="{% url 'device_list' %}" class="btn btn-secondary">
+                ← Go Back
+            </a>
+        
+            <a href="{% url 'edit_device' device.device_id %}" 
+               class="btn btn-warning">
+                Edit Device
+            </a>
+        
+            <a href="{% url 'report_issue' device.device_id %}" 
+               class="btn btn-danger">
+                Report Issue
+            </a>
+        
+        </div>
+    </div>
+</div>
+
+{% endblock %}

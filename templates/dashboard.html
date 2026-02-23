@@ -50,5 +50,19 @@
         </div>
     </div>
 
+
+    <!-- Departments -->
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title text-dark">Total Departments</h6>
+                <h2 class="fw-bold">{{ department_count }}</h2>
+                <a href="{% url 'department_list' %}" class="btn btn-primary btn-sm mt-3">
+                    View Departments
+                </a>
+            </div>
+        </div>
+    </div>
+
 </div>
 {% endblock %}

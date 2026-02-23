@@ -3,12 +3,53 @@
 {% block title %}Users | Central Hub{% endblock %}
 
 {% block content %}
-<h4 class="fw-bold mb-4 text-center">System Users</h4>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold">System Users</h4>
+
+    <!-- ✅ Add User Button -->
+    <a href="{% url 'add_user' %}" class="btn btn-primary btn-sm">
+        + Add User
+    </a>
+</div>
+<!-- 🔎 Search & Sort Form -->
+<form method="GET" class="row g-3 mb-4">
+
+    <!-- Search -->
+    <div class="col-md-4">
+        <input type="text"
+               name="search"
+               class="form-control"
+               placeholder="Search by username or email..."
+               value="{{ request.GET.search }}">
+    </div>
+
+    <!-- Sort -->
+    <div class="col-md-3">
+        <select name="sort" class="form-select">
+            <option value="">Sort By</option>
+            <option value="asc" {% if request.GET.sort == "asc" %}selected{% endif %}>
+                Username (A–Z)
+            </option>
+            <option value="desc" {% if request.GET.sort == "desc" %}selected{% endif %}>
+                Username (Z–A)
+            </option>
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">
+            Apply
+        </button>
+    </div>
+
+</form>
 
 <div class="container">
 
     {% if users %}
     <div class="table-responsive">
+
         <table class="table table-bordered table-hover align-middle">
             <thead class="table-light">
                 <tr>
@@ -16,6 +57,7 @@
                     <th>Email</th>
                     <th>Department</th>
                     <th>Designation</th>
+                    <th class="text-center">Action</th> <!-- ✅ NEW COLUMN -->
                 </tr>
             </thead>
             <tbody>
@@ -25,10 +67,20 @@
                     <td>{{ user.email }}</td>
                     <td>{{ user.department }}</td>
                     <td>{{ user.designation }}</td>
+                    <td class="text-center">
+
+                        <!-- ✅ Edit Button -->
+                        <a href="{% url 'edit_user' user.user_id %}" 
+                           class="btn btn-warning btn-sm">
+                            Edit
+                        </a>
+
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+
     </div>
     {% else %}
         <div class="alert alert-info text-center">
@@ -37,4 +89,5 @@
     {% endif %}
 
 </div>
+
 {% endblock %}

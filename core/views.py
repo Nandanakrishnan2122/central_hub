@@ -65,11 +65,57 @@ def dashboard(request):
 # -------------------------
 # DEPARTMENT
 # -------------------------
-@login_required
+from django.db.models import Q
+from .models import Department
+
 def department_list(request):
     departments = Department.objects.all()
-    return render(request, "department_list.html", {"departments": departments})
 
+    # 🔎 Search
+    search_query = request.GET.get("search")
+    if search_query:
+        departments = departments.filter(
+            Q(department_name__icontains=search_query)
+        )
+
+    # 🔽 Sorting
+    sort = request.GET.get("sort")
+    if sort == "asc":
+        departments = departments.order_by("department_name")
+    elif sort == "desc":
+        departments = departments.order_by("-department_name")
+
+    return render(request, "department_list.html", {
+        "departments": departments
+    })
+
+# -------------------------
+# ADD_DEPARTMENT 
+# -------------------------
+from django.shortcuts import render, redirect
+from .models import Department
+
+def add_department(request):
+    if request.method == "POST":
+        name = request.POST.get("department_name")
+
+        if name:
+            Department.objects.create(department_name=name)
+            return redirect("department_list")
+
+    return render(request, "add_department.html")
+
+
+from django.shortcuts import get_object_or_404
+
+def delete_department(request, pk):
+    department = get_object_or_404(Department, pk=pk)
+
+    if request.method == "POST":
+        department.delete()
+        return redirect("department_list")
+
+    return redirect("department_list")
 
 # -------------------------
 # DEVICE
@@ -80,18 +126,29 @@ def device_list(request):
     return render(request, "device_list.html", {"devices": devices})
 
 
-@login_required
-def device_detail(request, device_id):
-    device = get_object_or_404(Device, device_id=device_id)
-    locations = DeviceLocation.objects.filter(device=device)
-    issues = DeviceIssues.objects.filter(device=device)
+from django.shortcuts import render, get_object_or_404
+from .models import Device
 
-    context = {
-        "device": device,
-        "locations": locations,
-        "issues": issues,
-    }
-    return render(request, "device_detail.html", context)
+def device_detail(request, pk):
+    device = get_object_or_404(Device, device_id=pk)
+    return render(request, 'device_detail.html', {'device': device})
+
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Device
+from .forms import DeviceForm   # assuming you already have this
+
+def edit_device(request, pk):
+    device = get_object_or_404(Device, device_id=pk)
+
+    if request.method == "POST":
+        form = DeviceForm(request.POST, request.FILES, instance=device)
+        if form.is_valid():
+            form.save()
+            return redirect('device_detail', pk=device.device_id)
+    else:
+        form = DeviceForm(instance=device)
+
+    return render(request, 'edit_device.html', {'form': form})
 
 
 # -------------------------
@@ -158,16 +215,121 @@ def add_device(request):
         form = DeviceForm()
 
     return render(request, 'add_device.html', {'form': form})
-@login_required
+
+
+
+
+from django.db.models import Q
+
 def user_list(request):
-    users = User.objects.select_related("department", "designation")
-    return render(request, "user.html", {"users": users})
+    users = User.objects.all()
+
+    # 🔎 Search
+    search_query = request.GET.get("search")
+    if search_query:
+        users = users.filter(
+            Q(username__icontains=search_query) |
+            Q(email__icontains=search_query)
+        )
+
+    # 🔽 Sorting
+    sort = request.GET.get("sort")
+    if sort == "asc":
+        users = users.order_by("username")
+    elif sort == "desc":
+        users = users.order_by("-username")
+
+    return render(request, "user_list.html", {
+        "users": users
+    })
+
+from .models import User, Department, Designation
+from django.shortcuts import render, redirect, get_object_or_404
+
+def add_user(request):
+    departments = Department.objects.all()
+    designations = Designation.objects.all()
+
+    if request.method == "POST":
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        department_id = request.POST.get("department")
+        designation_id = request.POST.get("designation")
+
+        department = Department.objects.get(pk=department_id)
+        designation = Designation.objects.get(pk=designation_id)
+
+        User.objects.create(
+            username=username,
+            email=email,
+            department=department,
+            designation=designation
+        )
+
+        return redirect("user_list")
+
+    return render(request, "add_user.html", {
+        "departments": departments,
+        "designations": designations
+    })
+
+def edit_user(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    departments = Department.objects.all()
+    designations = Designation.objects.all()
+
+    if request.method == "POST":
+        user.username = request.POST.get("username")
+        user.email = request.POST.get("email")
+        user.department = Department.objects.get(pk=request.POST.get("department"))
+        user.designation = Designation.objects.get(pk=request.POST.get("designation"))
+        user.save()
+
+        return redirect("user_list")
+
+    return render(request, "edit_user.html", {
+        "user_obj": user,
+        "departments": departments,
+        "designations": designations
+    })
 
 
 @login_required
 def issue_list(request):
     issues = DeviceIssues.objects.select_related("device", "reported_by")
     return render(request, "issue_list.html", {"issues": issues})
+
+from django.shortcuts import render, get_object_or_404
+from .models import Device, DeviceIssues
+from django.db.models import Q
+
+def device_issues(request, device_id):
+    device = get_object_or_404(Device, pk=device_id)
+
+    issues = DeviceIssues.objects.filter(device=device)
+
+    search = request.GET.get('search')
+    sort = request.GET.get('sort')
+
+    if search:
+        issues = issues.filter(
+            Q(issue_description__icontains=search) |
+            Q(status__icontains=search)
+        )
+
+    if sort == "date_asc":
+        issues = issues.order_by("report_date")
+
+    elif sort == "date_desc":
+        issues = issues.order_by("-report_date")
+
+    elif sort == "status":
+        issues = issues.order_by("status")
+
+    return render(request, "device_issues.html", {
+        "device": device,
+        "issues": issues
+    })
 
 @login_required
 def issue_detail(request, issue_id):

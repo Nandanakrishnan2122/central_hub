@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit User | Central Hub{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-warning text-dark fw-bold">
+                Edit User
+            </div>
+
+            <div class="card-body">
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <!-- Username -->
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text"
+                               name="username"
+                               class="form-control"
+                               value="{{ user_obj.username }}"
+                               required>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email"
+                               name="email"
+                               class="form-control"
+                               value="{{ user_obj.email }}"
+                               required>
+                    </div>
+
+                    <!-- Department -->
+                    <div class="mb-3">
+                        <label class="form-label">Department</label>
+                        <select name="department" class="form-select" required>
+                            {% for dept in departments %}
+                                <option value="{{ dept.department_id }}"
+                                    {% if user_obj.department == dept %}selected{% endif %}>
+                                    {{ dept.department_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Designation -->
+                    <div class="mb-3">
+                        <label class="form-label">Designation</label>
+                        <select name="designation" class="form-select" required>
+                            {% for des in designations %}
+                                <option value="{{ des.des_id }}"
+                                    {% if user_obj.designation == des %}selected{% endif %}>
+                                    {{ des.designation }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'user_list' %}" class="btn btn-secondary">
+                            Cancel
+                        </a>
+
+                        <button type="submit" class="btn btn-success">
+                            Update User
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

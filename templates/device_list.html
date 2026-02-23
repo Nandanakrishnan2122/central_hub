@@ -36,6 +36,12 @@
                         <td>{{ device.device_model }}</td>
                         <td>{{ device.status }}</td>
                         <td>
+                            <a href="{% url 'device_detail' device.device_id %}" 
+                               class="text-decoration-none fw-semibold">
+                                {{ device.label_no }}
+                            </a>
+                        </td>
+                        <td>
                             <a href="{% url 'report_issue' device.device_id %}" 
                                class="btn btn-danger btn-sm">
                                 Report Issue

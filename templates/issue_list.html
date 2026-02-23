@@ -2,6 +2,40 @@
 
 {% block content %}
 <h4 class="fw-bold mb-4 text-center">Device Issues</h4>
+<!-- Search & Sort Section -->
+<div class="row justify-content-center mb-3">
+    <div class="col-md-8">
+        <form method="GET" class="d-flex gap-2">
+
+            <!-- Search Bar -->
+            <input type="text" 
+                   name="search" 
+                   class="form-control"
+                   placeholder="Search issue ..."
+                   value="{{ request.GET.search }}">
+
+            <!-- Sort Dropdown -->
+            <select name="sort" class="form-select">
+                <option value="">Sort By</option>
+                <option value="date_asc" {% if request.GET.sort == "date_asc" %}selected{% endif %}>
+                    Date (Oldest First)
+                </option>
+                <option value="date_desc" {% if request.GET.sort == "date_desc" %}selected{% endif %}>
+                    Date (Newest First)
+                </option>
+                <option value="status" {% if request.GET.sort == "status" %}selected{% endif %}>
+                    Status
+                </option>
+            </select>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary">
+                Apply
+            </button>
+
+        </form>
+    </div>
+</div>
 
 <div class="row justify-content-center">
     <div class="col-md-8">

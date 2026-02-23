@@ -11,9 +11,11 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
 
     path('departments/', views.department_list, name='department_list'),
-
+    path('departments/add/', views.add_department, name='add_department'),
+    path('departments/delete/<int:pk>/', views.delete_department, name='delete_department'),
+    
     path('devices/', views.device_list, name='device_list'),
-    path('device/<int:device_id>/', views.device_detail, name='device_detail'),
+    #path('device/<int:device_id>/', views.device_detail, name='device_detail'),
     path('devices/add/', views.add_device, name='add_device'),
 
 
@@ -25,5 +27,13 @@ urlpatterns = [
 
     path('device-types/', views.device_type_list, name='device_type_list'),
     path('device-specs/', views.device_spec_list, name='device_spec_list'),
+    path('device/<int:device_id>/issues/', views.device_issues, name='device_issues'),
+    path('device/<int:pk>/', views.device_detail, name='device_detail'),
+    path('device/edit/<int:pk>/', views.edit_device, name='edit_device'),
+
+
+
     path('users/', views.user_list, name='user_list'),
+    path('users/add/', views.add_user, name='add_user'),
+    path('users/edit/<int:pk>/', views.edit_user, name='edit_user'),
 ]

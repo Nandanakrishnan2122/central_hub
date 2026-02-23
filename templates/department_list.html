@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Departments | Central Hub{% endblock %}
+
+{% block content %}
+
+
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold">Department List</h4>
+
+    <div>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary btn-sm">
+            ← Back
+        </a>
+
+        <a href="{% url 'add_department' %}" class="btn btn-primary btn-sm">
+            + Add Department
+        </a>
+    </div>
+</div>
+
+<!-- 🔎 Search & Sort Form -->
+<form method="GET" class="row g-3 mb-4">
+
+    <!-- Search -->
+    <div class="col-md-4">
+        <input type="text" 
+               name="search" 
+               class="form-control" 
+               placeholder="Search department..."
+               value="{{ request.GET.search }}">
+    </div>
+
+    <!-- Sort -->
+    <div class="col-md-3">
+        <select name="sort" class="form-select">
+            <option value="">Sort By</option>
+            <option value="asc" {% if request.GET.sort == "asc" %}selected{% endif %}>
+                Name (A–Z)
+            </option>
+            <option value="desc" {% if request.GET.sort == "desc" %}selected{% endif %}>
+                Name (Z–A)
+            </option>
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">
+            Apply
+        </button>
+    </div>
+
+</form>
+
+<!-- 📋 Department Table -->
+{% if departments %}
+<div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>#</th>
+                <th>Department Name</th>
+                <th class="text-center">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for department in departments %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ department.department_name }}</td>
+                <td class="text-center">
+        
+                    <form method="POST" action="{% url 'delete_department' department.department_id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" 
+                                class="btn btn-danger btn-sm"
+                                onclick="return confirm('Are you sure you want to delete this department?');">
+                            Delete
+                        </button>
+                    </form>
+        
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+    <div class="alert alert-info text-center">
+        No departments found.
+    </div>
+{% endif %}
+
+{% endblock %}
