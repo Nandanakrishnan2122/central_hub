@@ -3,14 +3,74 @@
 {% block title %}Devices | Central Hub{% endblock %}
 
 {% block content %}
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="fw-bold">Device List</h4>
 
     <a href="{% url 'add_device' %}" class="btn btn-primary btn-sm">
         + Add Device
     </a>
-    
 </div>
+
+
+<!-- 📊 Filter by Status -->
+<div class="mb-4">
+    <h6 class="fw-bold">Filter by Status</h6>
+
+    <div class="d-flex gap-2 flex-wrap">
+
+        <!-- All Devices -->
+        <a href="{% url 'device_list' %}"
+           class="btn btn-outline-dark btn-sm 
+           {% if not current_status %}active{% endif %}">
+            All ({{ total_devices }})
+        </a>
+
+        <!-- Working Devices -->
+        <a href="?status=Working"
+           class="btn btn-outline-success btn-sm 
+           {% if current_status == 'Working' %}active{% endif %}">
+            Working
+        </a>
+
+        <!-- Reported Devices -->
+        <a href="?status=Reported"
+           class="btn btn-outline-danger btn-sm 
+           {% if current_status == 'Reported' %}active{% endif %}">
+            Reported
+        </a>
+
+    </div>
+</div>
+
+
+<!-- 📄 PDF Download Section -->
+<div class="mb-4">
+    <h6 class="fw-bold">Download PDF</h6>
+
+    <div class="d-flex gap-2 flex-wrap">
+
+        <!-- Download All -->
+        <a href="{% url 'download_devices_pdf' %}"
+           class="btn btn-outline-primary btn-sm">
+            Download All
+        </a>
+
+        <!-- Download Working -->
+        <a href="{% url 'download_devices_pdf' %}?status=Working"
+           class="btn btn-outline-success btn-sm">
+            Download Working
+        </a>
+
+        <!-- Download Reported -->
+        <a href="{% url 'download_devices_pdf' %}?status=Reported"
+           class="btn btn-outline-danger btn-sm">
+            Download Reported
+        </a>
+
+    </div>
+</div>
+
 
 {% if devices %}
     <div class="table-responsive">
@@ -23,7 +83,8 @@
                     <th>Brand</th>
                     <th>Model</th>
                     <th>Status</th>
-                    <th>Action</th> <!-- NEW COLUMN -->
+                    <th>View</th>
+                    <th>Report</th>
                 </tr>
             </thead>
             <tbody>
@@ -34,19 +95,33 @@
                         <td>{{ device.device_specification }}</td>
                         <td>{{ device.device_brand }}</td>
                         <td>{{ device.device_model }}</td>
-                        <td>{{ device.status }}</td>
+
+                        <!-- Status Badge -->
+                        <td>
+                            <span class="badge 
+                                {% if device.status == 'Working' %}bg-success
+                                {% elif device.status == 'Reported' %}bg-danger
+                                {% else %}bg-secondary{% endif %}">
+                                {{ device.status }}
+                            </span>
+                        </td>
+
+                        <!-- View -->
                         <td>
                             <a href="{% url 'device_detail' device.device_id %}" 
                                class="text-decoration-none fw-semibold">
-                                view
+                                View
                             </a>
                         </td>
+
+                        <!-- Report Button Always Visible -->
                         <td>
                             <a href="{% url 'report_issue' device.device_id %}" 
                                class="btn btn-danger btn-sm">
                                 Report Issue
                             </a>
                         </td>
+
                     </tr>
                 {% endfor %}
             </tbody>
@@ -54,7 +129,8 @@
     </div>
 {% else %}
     <div class="alert alert-info text-center">
-        No devices added yet.
+        No devices found.
     </div>
 {% endif %}
+
 {% endblock %}

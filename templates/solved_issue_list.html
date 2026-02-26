@@ -91,6 +91,13 @@
                 Back to Active Issues
             </a>
         </div>
+        <br>
+        <div class="text-center mb-3">
+            <a href="{% url 'download_solved_issue_list_pdf' %}?search={{ request.GET.search }}"
+               class="btn btn-danger">
+                Download PDF
+            </a>
+        </div>
 
     </div>
 </div>

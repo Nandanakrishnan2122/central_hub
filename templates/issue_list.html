@@ -2,19 +2,18 @@
 
 {% block content %}
 <h4 class="fw-bold mb-4 text-center">Device Issues</h4>
+
 <!-- Search & Sort Section -->
 <div class="row justify-content-center mb-3">
     <div class="col-md-8">
         <form method="GET" class="d-flex gap-2">
 
-            <!-- Search Bar -->
             <input type="text" 
                    name="search" 
                    class="form-control"
                    placeholder="Search issue ..."
                    value="{{ request.GET.search }}">
 
-            <!-- Sort Dropdown -->
             <select name="sort" class="form-select">
                 <option value="">Sort By</option>
                 <option value="date_asc" {% if request.GET.sort == "date_asc" %}selected{% endif %}>
@@ -28,7 +27,6 @@
                 </option>
             </select>
 
-            <!-- Submit Button -->
             <button type="submit" class="btn btn-primary">
                 Apply
             </button>
@@ -38,7 +36,7 @@
 </div>
 
 <div class="row justify-content-center">
-    <div class="col-md-8">
+    <div class="col-md-10">
 
         <div class="card shadow-sm p-4 mb-4">
             <p><strong>Device:</strong> {{ device.label_no }}</p>
@@ -47,23 +45,32 @@
 
             {% if issues %}
             <div class="table-responsive mt-3">
-                <table class="table table-bordered table-hover">
+                <table class="table table-bordered table-hover align-middle">
                     <thead class="table-light">
                         <tr>
+                            <th>Label No</th>
                             <th>Description</th>
                             <th>Status</th>
                             <th>Reported By</th>
                             <th>Date</th>
+                            <th class="text-center">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for issue in issues %}
                         <tr>
+                            <td>{{ issue.device.label_no }}</td>
                             <td>{{ issue.issue_description }}</td>
-                            <td>{{ issue.status }}</td>
-                            <td>{{ issue.reported_by }}</td>
-                            <td>{{ issue.report_date }}</td>
                             <td>
+                                <span class="badge 
+                                    {% if issue.status == 'Solved' %}bg-success
+                                    {% else %}bg-warning text-dark{% endif %}">
+                                    {{ issue.status }}
+                                </span>
+                            </td>
+                            <td>{{ issue.reported_by }}</td>
+                            <td>{{ issue.report_date|date:"d M Y" }}</td>
+                            <td class="text-center">
                                 {% if issue.status != "Solved" %}
                                     <a href="{% url 'issue_solved' issue.issue_id %}" 
                                        class="btn btn-success btn-sm">
@@ -85,7 +92,14 @@
             {% endif %}
         </div>
 
-
     </div>
+    
 </div>
+<div class="text-center mt-4">
+    <a href="{% url 'download_issue_list_pdf' %}?search={{ request.GET.search }}&sort={{ request.GET.sort }}"
+       class="btn btn-danger">
+        Download PDF
+    </a>
+</div>
+
 {% endblock %}

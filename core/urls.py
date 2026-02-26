@@ -30,12 +30,23 @@ urlpatterns = [
     path('issues/solved/edit/<int:pk>/', views.edit_solved_issue, name='edit_solved_issue'),
     path('issues/solved/delete/<int:pk>/', views.delete_solved_issue, name='delete_solved_issue'),
     path('issues/solved/<int:pk>/', views.solved_issue_detail, name='solved_issue_detail'),
+    path('issues/solved/<int:pk>/pdf/',views.download_solved_issue_pdf,name='download_solved_issue_pdf'),
+    path('issues/solved/pdf/',views.download_solved_issue_list_pdf,name='download_solved_issue_list_pdf'),
+    path(
+    'issues/reported/pdf/',
+    views.download_issue_list_pdf,
+    name='download_issue_list_pdf'
+),
+    
+    
     
     path('device-types/', views.device_type_list, name='device_type_list'),
     path('device-specs/', views.device_spec_list, name='device_spec_list'),
     path('device/<int:device_id>/issues/', views.device_issues, name='device_issues'),
     path('device/<int:pk>/', views.device_detail, name='device_detail'),
     path('device/edit/<int:pk>/', views.edit_device, name='edit_device'),
+    path('device/<int:pk>/pdf/', views.download_device_pdf, name='download_device_pdf'),
+    path("devices/pdf/", views.download_devices_pdf, name="download_devices_pdf"),
     
 
 

@@ -77,7 +77,6 @@ class DeviceForm(forms.ModelForm):
             }),
             'status': forms.TextInput(attrs={'class': 'form-control'}),
             'device_image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
-            'department': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
 

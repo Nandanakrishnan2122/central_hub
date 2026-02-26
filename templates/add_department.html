@@ -13,28 +13,46 @@
             </div>
 
             <div class="card-body">
+
+                <!-- Show Error Message -->
+                {% if error %}
+                    <div class="alert alert-danger">
+                        {{ error }}
+                    </div>
+                {% endif %}
+
                 <form method="POST">
                     {% csrf_token %}
 
+                    <!-- Department Name -->
                     <div class="mb-3">
                         <label class="form-label">Department Name</label>
                         <input type="text" 
                                name="department_name" 
                                class="form-control"
+                               value="{{ request.POST.department_name }}"
                                required>
                     </div>
+
+                    <!-- Teacher Dropdown -->
                     <div class="mb-3">
                         <label class="form-label">Teacher In Charge</label>
                         <select name="teacher_in_charge" class="form-select">
                             <option value="">Select Teacher</option>
+
                             {% for teacher in teachers %}
-                                <option value="{{ teacher.id }}">
+                                <option value="{{ teacher.pk }}"
+                                    {% if request.POST.teacher_in_charge == teacher.pk|stringformat:"s" %}
+                                        selected
+                                    {% endif %}
+                                >
                                     {{ teacher.username }}
                                 </option>
                             {% endfor %}
                         </select>
                     </div>
 
+                    <!-- Buttons -->
                     <div class="d-flex justify-content-between">
                         <a href="{% url 'department_list' %}" class="btn btn-secondary">
                             Cancel
@@ -44,6 +62,7 @@
                             Save Department
                         </button>
                     </div>
+
                 </form>
             </div>
         </div>

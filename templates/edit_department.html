@@ -13,6 +13,7 @@
             <form method="POST">
                 {% csrf_token %}
 
+                <!-- Department Name -->
                 <div class="mb-3">
                     <label class="form-label">Department Name</label>
                     <input type="text" 
@@ -22,13 +23,15 @@
                            required>
                 </div>
 
+                <!-- Teacher Dropdown -->
                 <div class="mb-3">
                     <label class="form-label">Teacher In Charge</label>
                     <select name="teacher_in_charge" class="form-select">
                         <option value="">Select Teacher</option>
+
                         {% for teacher in teachers %}
-                            <option value="{{ teacher.id }}"
-                                {% if department.teacher_in_charge and department.teacher_in_charge.id == teacher.id %}
+                            <option value="{{ teacher.pk }}"
+                                {% if department.teacher_in_charge and department.teacher_in_charge.pk == teacher.pk %}
                                     selected
                                 {% endif %}
                             >
@@ -38,6 +41,7 @@
                     </select>
                 </div>
 
+                <!-- Buttons -->
                 <div class="text-center">
                     <button type="submit" class="btn btn-success">
                         Update
