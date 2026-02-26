@@ -18,18 +18,67 @@ from .models import (
 # -------------------------
 # AUTHENTICATION
 # -------------------------
+from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
+from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
 def login_view(request):
+
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
+        role = request.POST.get("role")   # principal or staff
 
         user = authenticate(request, username=username, password=password)
-        if user:
-            login(request, user)
-            return redirect("dashboard")
+
+        if user is None:
+            messages.error(request, "Invalid username or password.")
+            return redirect("login")
+
+        if not user.designation:
+            messages.error(request, "No designation assigned to your account.")
+            return redirect("login")
+
+        user_role = user.designation.designation.strip().lower()
+
+        # 🔷 PRINCIPAL TAB
+        if role == "principal":
+            if user_role == "principal":
+                login(request, user)
+                return redirect("dashboard")
+            else:
+                messages.error(request, "You are not authorized as Principal.")
+                return redirect("login")
+
+        # 🔷 STAFF TAB
+        if role == "staff":
+            if user_role != "principal":
+                login(request, user)
+                return redirect("dashboard")
+            else:
+                messages.error(request, "Please use Principal tab.")
+                return redirect("login")
+
+        messages.error(request, "Invalid role selected.")
+        return redirect("login")
 
     return render(request, "login.html")
-
 
 @login_required
 def logout_view(request):
@@ -51,23 +100,54 @@ def register_view(request):
 # -------------------------
 # DASHBOARD
 # -------------------------
+from django.contrib.auth.decorators import login_required
+from django.db.models import Count
+from django.contrib.auth.decorators import login_required
+from core.models import Device, DeviceIssues, Department, User
+
 @login_required
 def dashboard(request):
-    context = {
-        "device_count": Device.objects.count(),
 
-        "issue_count": DeviceIssues.objects.exclude(
-            status__iexact="Solved"
-        ).count(),
-        "solved_issue_count": DeviceIssues.objects.filter(
-            status__iexact="Solved"
-        ).count(),
+    user = request.user
+    user_role = user.designation.designation.strip().lower()
 
-        "department_count": Department.objects.count(),
-        "user_count": User.objects.count(),
-    }
+    if user_role == "principal":
 
-    return render(request, "dashboard.html", context)
+        device_count = Device.objects.count()
+
+        # ✅ All active issues (not solved)
+        issue_count = DeviceIssues.objects.exclude(status="Solved").count()
+
+        solved_issue_count = DeviceIssues.objects.filter(status="Solved").count()
+
+        user_count = User.objects.count()
+        department_count = Department.objects.count()
+
+    else:
+        department = user.department
+
+        device_count = Device.objects.filter(department=department).count()
+
+        issue_count = DeviceIssues.objects.filter(
+            device__department=department
+        ).exclude(status="Solved").count()
+
+        solved_issue_count = DeviceIssues.objects.filter(
+            device__department=department,
+            status="Solved"
+        ).count()
+
+        user_count = None
+        department_count = None
+
+    return render(request, "dashboard.html", {
+        "device_count": device_count,
+        "issue_count": issue_count,
+        "solved_issue_count": solved_issue_count,
+        "user_count": user_count,
+        "department_count": department_count,
+        "is_principal": user_role == "principal",
+    })
 
 # -------------------------
 # DEPARTMENT
@@ -126,6 +206,7 @@ def add_department(request):
     })
 
 
+
 # -------------------------
 # DELETE_DEPARTMENT 
 # -------------------------
@@ -167,13 +248,7 @@ def edit_department(request, pk):
         'teachers': teachers
     })
 
-# -------------------------
-# DEVICE_LIST
-# -------------------------
-@login_required
-def device_list(request):
-    devices = Device.objects.all()
-    return render(request, "device_list.html", {"devices": devices})
+
 
 
 # -------------------------
@@ -405,19 +480,36 @@ def edit_user(request, pk):
 # -------------------------
 # ISSUE_LIST
 # -------------------------
-from django.db.models import Q
-
+@login_required
 def issue_list(request):
-    issues = DeviceIssues.objects.exclude(status__iexact="Solved")
 
-    search = request.GET.get('search')
-    sort = request.GET.get('sort')
+    user = request.user
 
-    if search:
+    if not user.designation:
+        issues = DeviceIssues.objects.none()
+    else:
+        user_role = user.designation.designation.strip().lower()
+
+        # 👨‍💼 Principal → All active issues
+        if user_role == "principal":
+            issues = DeviceIssues.objects.exclude(status="Solved")
+
+        # 👨‍🏫 Staff → Only department active issues
+        else:
+            issues = DeviceIssues.objects.filter(
+                device__department=user.department
+            ).exclude(status="Solved")
+
+    # 🔎 Search
+    search_query = request.GET.get("search")
+    if search_query:
         issues = issues.filter(
-            Q(issue_description__icontains=search) |
-            Q(status__icontains=search)
+            Q(issue_description__icontains=search_query) |
+            Q(device__label_no__icontains=search_query)
         )
+
+    # 🔽 Sorting
+    sort = request.GET.get("sort")
 
     if sort == "date_asc":
         issues = issues.order_by("report_date")
@@ -427,29 +519,48 @@ def issue_list(request):
         issues = issues.order_by("status")
 
     return render(request, "issue_list.html", {
-        "issues": issues
+        "issues": issues,
     })
-
 # -------------------------
 # SOLVED_ISSUE_LIST
 # -------------------------
 
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from .models import DeviceIssues
+from core.models import DeviceIssues
 
+@login_required
 def solved_issue_list(request):
-    issues = DeviceIssues.objects.filter(status__iexact="Solved").order_by("-repaired_date")
 
-    search = request.GET.get("search")
+    user = request.user
 
-    if search:
+    # 🔒 Base Query (Solved Only)
+    if not user.designation:
+        issues = DeviceIssues.objects.none()
+    else:
+        user_role = user.designation.designation.strip().lower()
+
+        # 👨‍💼 Principal → All solved issues
+        if user_role == "principal":
+            issues = DeviceIssues.objects.filter(status="Solved")
+
+        # 👨‍🏫 Staff → Only department solved issues
+        else:
+            issues = DeviceIssues.objects.filter(
+                status="Solved",
+                device__department=user.department
+            )
+
+    # 🔎 Search
+    search_query = request.GET.get("search")
+    if search_query:
         issues = issues.filter(
-            Q(issue_description__icontains=search) |
-            Q(device__label_no__icontains=search)
+            Q(issue_description__icontains=search_query) |
+            Q(device__label_no__icontains=search_query)
         )
 
     return render(request, "solved_issue_list.html", {
-        "issues": issues
+        "issues": issues,
     })
 
 
@@ -665,41 +776,38 @@ def download_solved_issue_list_pdf(request):
 # -------------------------
 from django.db.models import Count
 
+from django.contrib.auth.decorators import login_required
+from core.models import Device
+
+@login_required
 def device_list(request):
-    devices = Device.objects.all()
 
-    # 🔎 Status Filter
+    user = request.user
+
+    # Safety check
+    if not user.designation:
+        devices = Device.objects.none()
+    else:
+        user_role = user.designation.designation.strip().lower()
+
+        # 👨‍💼 PRINCIPAL → See all devices
+        if user_role == "principal":
+            devices = Device.objects.all()
+
+        # 👨‍🏫 STAFF → See only department devices
+        else:
+            devices = Device.objects.filter(department=user.department)
+
+    # Status filter
     status_filter = request.GET.get("status")
+    if status_filter:
+        devices = devices.filter(status=status_filter)
 
-    if status_filter == "Working":
-        devices = devices.filter(status="Working")
-    elif status_filter == "Reported":
-        devices = devices.filter(status="Reported")
-
-    # 🔢 Total Devices (based on filtered result)
     total_devices = devices.count()
-
-    # 📊 Devices grouped by Type (based on filtered result)
-    device_type_counts = (
-        devices
-        .values("device_type__device_type")
-        .annotate(count=Count("device_id"))
-        .order_by("device_type__device_type")
-    )
-
-    # 📊 Devices grouped by Status (always show full summary)
-    status_counts = (
-        Device.objects
-        .values("status")
-        .annotate(count=Count("device_id"))
-        .order_by("status")
-    )
 
     return render(request, "device_list.html", {
         "devices": devices,
         "total_devices": total_devices,
-        "device_type_counts": device_type_counts,
-        "status_counts": status_counts,
         "current_status": status_filter,
     })
 
@@ -738,7 +846,6 @@ def download_device_pdf(request, pk):
         ["Label No", device.label_no],
         ["Device Type", str(device.device_type)],
         ["Department", str(device.department) if device.department else "Not Assigned"],
-        ["Specification", str(device.device_specification)],
         ["Brand", device.device_brand],
         ["Model", device.device_model],
         ["Cost", f"₹ {device.device_cost}"],
@@ -884,3 +991,26 @@ def download_devices_pdf(request):
     doc.build(elements)
 
     return response
+
+
+
+
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def delete_issue(request, issue_id):
+
+    issue = get_object_or_404(DeviceIssues, issue_id=issue_id)
+    user = request.user
+
+    # 🔐 Role restriction
+    if user.designation.designation.strip().lower() != "principal":
+        if issue.device.department != user.department:
+            return redirect("issue_list")
+
+    if request.method == "POST":
+        issue.delete()
+
+    return redirect("issue_list")

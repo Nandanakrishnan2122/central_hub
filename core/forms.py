@@ -17,10 +17,37 @@ class LoginForm(AuthenticationForm):
     username = forms.CharField(max_length=150)
     password = forms.CharField(widget=forms.PasswordInput)
 
+from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from .models import User, Department, Designation
+
 class RegisterForm(UserCreationForm):
+
+    department = forms.ModelChoiceField(
+        queryset=Department.objects.all(),
+        required=True
+    )
+
     class Meta:
         model = User
-        fields = ['username', 'password1', 'password2']
+        fields = [
+            "username",
+            "password1",
+            "password2",
+            "department",
+        ]
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+
+        # Automatically assign staff
+        staff_designation = Designation.objects.get(designation__iexact="staff")
+        user.designation = staff_designation
+
+        if commit:
+            user.save()
+
+        return user
 
 
 class DepartmentForm(forms.ModelForm):

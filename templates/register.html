@@ -3,45 +3,79 @@
 {% block title %}Register - Central Hub{% endblock %}
 
 {% block content %}
+
 <div class="row justify-content-center">
-    <div class="col-md-5">
-        <h3 class="text-center mb-4">Register</h3>
+    <div class="col-md-6 col-lg-5">
 
-        <form method="post">
-            {% csrf_token %}
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
 
-            <div class="mb-3">
-                <label class="form-label">Username</label>
-                <input type="text" name="username" class="form-control" required>
+                <h4 class="text-center fw-bold mb-4">
+                    Create Staff Account
+                </h4>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <!-- Username -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            Username
+                        </label>
+                        {{ form.username }}
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            Password
+                        </label>
+                        {{ form.password1 }}
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            Confirm Password
+                        </label>
+                        {{ form.password2 }}
+                    </div>
+
+                    <!-- Department -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            Department
+                        </label>
+                        {{ form.department }}
+                    </div>
+
+                    {% if form.errors %}
+                        <div class="alert alert-danger small">
+                            {{ form.errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary py-2">
+                            Register Staff
+                        </button>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <small>
+                            Already have an account?
+                            <a href="{% url 'login' %}" class="fw-semibold">
+                                Login
+                            </a>
+                        </small>
+                    </div>
+
+                </form>
+
             </div>
+        </div>
 
-            <div class="mb-3">
-                <label class="form-label">Password</label>
-                <input type="password" name="password1" class="form-control" required>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Confirm Password</label>
-                <input type="password" name="password2" class="form-control" required>
-            </div>
-
-            {% if form.errors %}
-                <div class="alert alert-danger">
-                    {{ form.errors }}
-                </div>
-            {% endif %}
-
-            <div class="d-grid">
-                <button type="submit" class="btn btn-primary">
-                    Register
-                </button>
-            </div>
-
-            <div class="text-center mt-3">
-                <span>Already have an account? </span>
-                <a href="{% url 'login' %}">Login</a>
-            </div>
-        </form>
     </div>
 </div>
+
 {% endblock %}

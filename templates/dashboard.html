@@ -4,10 +4,9 @@
 
 {% block content %}
 
-
-{% if user.is_authenticated %}
-<h3 class="mb-4 text-center fw-bold">Welcome back, <strong>{{ user.username|title}}</h3>
-{% endif %}
+<h3 class="mb-4 text-center fw-bold">
+    Welcome back, <strong>{{ user.username|title }}</strong>
+</h3>
 
 <div class="row g-4 justify-content-center">
 
@@ -15,7 +14,13 @@
     <div class="col-md-3">
         <div class="card text-center shadow-sm h-100">
             <div class="card-body">
-                <h6 class="card-title text-dark">Total Devices</h6>
+                <h6 class="card-title text-dark">
+                    {% if is_principal %}
+                        Total Devices
+                    {% else %}
+                        Department Devices
+                    {% endif %}
+                </h6>
                 <h2 class="fw-bold">{{ device_count }}</h2>
                 <a href="{% url 'device_list' %}" class="btn btn-primary btn-sm mt-3">
                     View Devices
@@ -24,11 +29,13 @@
         </div>
     </div>
 
-    <!-- Issues -->
+    <!-- Reported Issues -->
     <div class="col-md-3">
         <div class="card text-center shadow-sm h-100">
             <div class="card-body">
-                <h6 class="card-title text-dark">Reported Issues</h6>
+                <h6 class="card-title text-dark">
+                    Reported Issues
+                </h6>
                 <h2 class="fw-bold">{{ issue_count }}</h2>
                 <a href="{% url 'issue_list' %}" class="btn btn-primary btn-sm mt-3">
                     View Issues
@@ -38,22 +45,23 @@
     </div>
 
     <!-- Solved Issues -->
-<div class="col-md-3">
-    <div class="card text-center shadow-sm h-100">
-        <div class="card-body">
-            <h6 class="card-title text-dark">Solved Issues</h6>
-            <h2 class="fw-bold">
-                {{ solved_issue_count }}
-            </h2>
-            <a href="{% url 'solved_issue_list' %}" 
-               class="btn btn-primary btn-sm mt-3">
-                View Solved Issues
-            </a>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title text-dark">
+                    Solved Issues
+                </h6>
+                <h2 class="fw-bold">{{ solved_issue_count }}</h2>
+                <a href="{% url 'solved_issue_list' %}" 
+                   class="btn btn-primary btn-sm mt-3">
+                    View Solved Issues
+                </a>
+            </div>
         </div>
     </div>
-</div>
 
-    <!-- Users -->
+    {% if is_principal %}
+    <!-- Total Users (Principal Only) -->
     <div class="col-md-3">
         <div class="card text-center shadow-sm h-100">
             <div class="card-body">
@@ -66,8 +74,7 @@
         </div>
     </div>
 
-
-    <!-- Departments -->
+    <!-- Total Departments (Principal Only) -->
     <div class="col-md-3">
         <div class="card text-center shadow-sm h-100">
             <div class="card-body">
@@ -79,6 +86,8 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
 </div>
+
 {% endblock %}

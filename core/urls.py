@@ -9,6 +9,8 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
 
     path('dashboard/', views.dashboard, name='dashboard'),
+    path("principal/dashboard/", views.dashboard, name="principal_dashboard"),
+    path("user/dashboard/", views.dashboard, name="user_dashboard"),
 
     path('departments/', views.department_list, name='department_list'),
     path('departments/add/', views.add_department, name='add_department'),
@@ -32,6 +34,7 @@ urlpatterns = [
     path('issues/solved/<int:pk>/', views.solved_issue_detail, name='solved_issue_detail'),
     path('issues/solved/<int:pk>/pdf/',views.download_solved_issue_pdf,name='download_solved_issue_pdf'),
     path('issues/solved/pdf/',views.download_solved_issue_list_pdf,name='download_solved_issue_list_pdf'),
+    path('issue/delete/<int:issue_id>/', views.delete_issue, name='delete_issue'),
     path(
     'issues/reported/pdf/',
     views.download_issue_list_pdf,
@@ -41,7 +44,6 @@ urlpatterns = [
     
     
     path('device-types/', views.device_type_list, name='device_type_list'),
-    path('device-specs/', views.device_spec_list, name='device_spec_list'),
     path('device/<int:device_id>/issues/', views.device_issues, name='device_issues'),
     path('device/<int:pk>/', views.device_detail, name='device_detail'),
     path('device/edit/<int:pk>/', views.edit_device, name='edit_device'),

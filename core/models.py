@@ -88,7 +88,6 @@ class Device(models.Model):
     device_id = models.AutoField(primary_key=True)
 
     device_type = models.ForeignKey(DeviceType, on_delete=models.SET_NULL, null=True)
-    device_specification = models.ForeignKey(DeviceSpecification, on_delete=models.SET_NULL, null=True)
 
     label_no = models.CharField(max_length=50, unique=True)
     device_model = models.CharField(max_length=100)
