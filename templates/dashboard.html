@@ -2,92 +2,501 @@
 
 {% block title %}Dashboard | Central Hub{% endblock %}
 
+{% block extra_css %}
+<style>
+html,
+body {
+    height: 100%;
+    overflow: hidden;
+}
+
+.dashboard-shell {
+    background: linear-gradient(180deg, #fbfffd 0%, #f2fbf6 100%);
+    border: 1px solid #d8eee2;
+    border-radius: 26px;
+    padding: 1.75rem;
+    box-shadow: 0 18px 38px rgba(47, 123, 99, 0.12);
+    width: 100%;
+    max-width: var(--page-max-width);
+    margin: 0 auto var(--page-bottom-gap);
+    height: calc(100dvh - 64px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.main-content {
+    overflow: hidden;
+}
+
+.hero-card {
+    display: grid;
+    grid-template-columns: minmax(250px, 0.95fr) minmax(0, 1.4fr);
+    gap: 1.3rem;
+    background: #ffffff;
+    border: 1px solid #dcefe6;
+    border-radius: 24px;
+    padding: 1.2rem;
+    box-shadow: 0 12px 28px rgba(47, 123, 99, 0.08);
+}
+
+.hero-visual {
+    border-radius: 18px;
+    padding: 1.1rem;
+    background: linear-gradient(135deg, #e9fbf3 0%, #d4f4e5 52%, #c1ebda 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 210px;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-visual::before,
+.hero-visual::after {
+    content: "";
+    position: absolute;
+    border-radius: 999px;
+    opacity: 0.32;
+}
+
+.hero-visual::before {
+    width: 230px;
+    height: 230px;
+    background: #9de0c1;
+    left: -70px;
+    top: -95px;
+}
+
+.hero-visual::after {
+    width: 180px;
+    height: 180px;
+    background: #7ccca8;
+    right: -50px;
+    bottom: -85px;
+}
+
+.hero-device {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.98);
+    border-radius: 24px;
+    width: 205px;
+    height: 165px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.4rem;
+    z-index: 2;
+    box-shadow: 0 10px 22px rgba(41, 91, 72, 0.14);
+}
+
+.hero-device i {
+    font-size: 2.8rem;
+    color: var(--mint-800);
+}
+
+.hero-device span {
+    font-size: 0.72rem;
+    color: #4f6d62;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.hero-content {
+    padding: 0.45rem 0.45rem 0.45rem 0.2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.hero-kicker {
+    margin: 0;
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #5d8b7a;
+}
+
+.hero-content h1 {
+    margin: 0.35rem 0 0.55rem;
+    font-size: clamp(1.7rem, 2.6vw, 2.35rem);
+    color: var(--ink-900);
+    letter-spacing: -0.02em;
+    font-weight: 800;
+}
+
+.hero-content h1 span {
+    color: var(--mint-800);
+}
+
+.hero-content h1 #dashboard-greeting.night {
+    color: #000000;
+}
+
+.hero-sub {
+    margin: 0;
+    color: #4d675f;
+    font-size: 0.94rem;
+    line-height: 1.65;
+    max-width: 720px;
+}
+
+.hero-tags {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+}
+
+.hero-tags span {
+    background: #e9f9f1;
+    color: #2f7b63;
+    border: 1px solid #cfeada;
+    padding: 0.3rem 0.68rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 2rem 0 1.05rem;
+}
+
+.section-header h2 {
+    font-size: 1.34rem;
+    font-weight: 800;
+    color: var(--ink-900);
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+.section-header p {
+    font-size: 0.84rem;
+    color: #60786f;
+    margin-top: 2px;
+    margin-bottom: 0;
+}
+
+.light-chip {
+    background: #eaf8f0;
+    border: 1px solid #d3ecdd;
+    padding: 0.34rem 0.86rem;
+    border-radius: 40px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #3a7f66;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+.stat-card {
+    border-radius: 18px;
+    padding: 1.25rem 1.1rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 12px 24px rgba(30, 71, 57, 0.16);
+}
+
+.stat-card:nth-child(1) {
+    background: linear-gradient(145deg, #1f4f40 0%, #2f7b63 100%);
+}
+.stat-card:nth-child(2) {
+    background: linear-gradient(145deg, #2f7b63 0%, #3e9b79 100%);
+}
+.stat-card:nth-child(3) {
+    background: linear-gradient(145deg, #2c8f71 0%, #53b58f 100%);
+}
+.stat-card:nth-child(4) {
+    background: linear-gradient(145deg, #3d9a79 0%, #66be9a 100%);
+}
+
+.stat-card::after {
+    content: "";
+    position: absolute;
+    width: 170px;
+    height: 170px;
+    border-radius: 999px;
+    right: -60px;
+    bottom: -90px;
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.stat-value {
+    font-size: 2.1rem;
+    font-weight: 800;
+    margin-bottom: 0.32rem;
+    line-height: 1.1;
+    position: relative;
+    z-index: 1;
+}
+
+.stat-label {
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    opacity: 0.92;
+    letter-spacing: 0.04em;
+    position: relative;
+    z-index: 1;
+}
+
+.stat-trend {
+    font-size: 0.76rem;
+    opacity: 0.86;
+    margin-top: 0.3rem;
+    position: relative;
+    z-index: 1;
+}
+
+.recent-list {
+    background: #ffffff;
+    border: 1px solid #dcefe6;
+    border-radius: 20px;
+    padding: 0.45rem 1.25rem;
+    box-shadow: 0 12px 24px rgba(50, 102, 83, 0.07);
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.recent-list::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+.issues-section {
+    margin-top: 0.3rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.issue-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid #edf6f1;
+}
+
+.issue-item:last-child {
+    border-bottom: none;
+}
+
+.issue-info h3 {
+    font-size: 0.97rem;
+    font-weight: 700;
+    color: var(--ink-900);
+    margin-bottom: 0.28rem;
+}
+
+.issue-right {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+}
+
+.issue-meta {
+    font-size: 0.84rem;
+    color: #617b71;
+}
+
+.status-chip {
+    padding: 0.35rem 0.68rem;
+    border-radius: 40px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.status-chip.pending {
+    background: #eef9e5;
+    color: #5e8b24;
+    border: 1px solid #d9eec8;
+}
+
+.status-chip.progress {
+    background: #e8f7f0;
+    color: #237457;
+    border: 1px solid #cce8da;
+}
+
+.status-chip.solved {
+    background: #def6eb;
+    color: #1f6d4f;
+    border: 1px solid #c5e9d8;
+}
+
+.issue-date {
+    font-size: 0.74rem;
+    color: #6f8a80;
+}
+
+@media (max-width: 1100px) {
+    .hero-card {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-shell {
+        padding: 1rem;
+        height: calc(100dvh - 52px);
+    }
+
+    .hero-card {
+        padding: 0.95rem;
+    }
+
+    .hero-content h1 {
+        font-size: 1.55rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .issue-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.6rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-
-<h3 class="mb-4 text-center fw-bold">
-    Welcome back, <strong>{{ user.username|title }}</strong>
-</h3>
-
-<div class="row g-4 justify-content-center">
-
-    <!-- Devices -->
-    <div class="col-md-3">
-        <div class="card text-center shadow-sm h-100">
-            <div class="card-body">
-                <h6 class="card-title text-dark">
-                    {% if is_principal %}
-                        Total Devices
-                    {% else %}
-                        Department Devices
-                    {% endif %}
-                </h6>
-                <h2 class="fw-bold">{{ device_count }}</h2>
-                <a href="{% url 'device_list' %}" class="btn btn-primary btn-sm mt-3">
-                    View Devices
-                </a>
+<div class="dashboard-shell">
+    <div class="hero-card">
+        <div class="hero-visual">
+            <div class="hero-device">
+                <i class="bi bi-hdd-network"></i>
+                <span>Central Hub</span>
+            </div>
+        </div>
+        <div class="hero-content">
+            <p class="hero-kicker">Maintenance Control Center</p>
+            <h1><span id="dashboard-greeting">{{ greeting_text }}</span>, <span>{{ user.username|title }}</span>!</h1>
+            <p class="hero-sub">Central Hub is a centralized platform that helps institutions manage devices and maintenance efficiently. It allows teachers to report issues, staff to handle repairs, and the principal to monitor everything, ensuring smooth and organized operations.</p>
+            <div class="hero-tags">
+                <span>Issue Reporting</span>
+                <span>Repair Tracking</span>
+                <span>Principal Monitoring</span>
             </div>
         </div>
     </div>
 
-    <!-- Reported Issues -->
-    <div class="col-md-3">
-        <div class="card text-center shadow-sm h-100">
-            <div class="card-body">
-                <h6 class="card-title text-dark">
-                    Reported Issues
-                </h6>
-                <h2 class="fw-bold">{{ issue_count }}</h2>
-                <a href="{% url 'issue_list' %}" class="btn btn-primary btn-sm mt-3">
-                    View Issues
-                </a>
-            </div>
+    <div class="section-header">
+        <div>
+            <h2>System Snapshot</h2>
+            <p>Core metrics from your current maintenance data</p>
+        </div>
+        <span class="light-chip">Live</span>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ device_count }}</div>
+            <div class="stat-label">{% if is_principal %}Total Devices{% else %}Department Devices{% endif %}</div>
+            <div class="stat-trend">{{ working_device_rate }}% working now</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ issue_count }}</div>
+            <div class="stat-label">Open Issues</div>
+            <div class="stat-trend">Pending + in progress</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ solved_issue_count }}</div>
+            <div class="stat-label">Solved Issues</div>
+            <div class="stat-trend">{{ solved_rate }}% resolution rate</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ working_device_count }}</div>
+            <div class="stat-label">Working Devices</div>
+            <div class="stat-trend">{{ working_device_count }} / {{ device_count }} running</div>
         </div>
     </div>
 
-    <!-- Solved Issues -->
-    <div class="col-md-3">
-        <div class="card text-center shadow-sm h-100">
-            <div class="card-body">
-                <h6 class="card-title text-dark">
-                    Solved Issues
-                </h6>
-                <h2 class="fw-bold">{{ solved_issue_count }}</h2>
-                <a href="{% url 'solved_issue_list' %}" 
-                   class="btn btn-primary btn-sm mt-3">
-                    View Solved Issues
-                </a>
+    <div class="issues-section">
+        <div class="section-header">
+            <div>
+                <h2>Latest Reported Issues</h2>
+                <p>Recent unsolved issues from your devices</p>
             </div>
+            <span class="light-chip">Last 5</span>
+        </div>
+
+        <div class="recent-list">
+            {% for issue in latest_reported_issues %}
+            <div class="issue-item">
+                <div class="issue-info">
+                    <h3>
+                        {{ issue.device.label_no }}
+                        {% if issue.device.department %}• {{ issue.device.department.department_name }}{% endif %}
+                    </h3>
+                    <div class="issue-meta">
+                        <span>{{ issue.issue_description|truncatechars:120 }}</span>
+                    </div>
+                </div>
+                <div class="issue-right">
+                    <span class="status-chip 
+                        {% if issue.status == 'Pending' %}pending
+                        {% elif issue.status == 'In Progress' %}progress
+                        {% else %}solved{% endif %}">
+                        {{ issue.status }}
+                    </span>
+                    <span class="issue-date">{{ issue.report_date|date:"d M Y" }}</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="issue-item">
+                <div class="issue-info">
+                    <h3>No reported issues</h3>
+                    <div class="issue-meta">Everything looks good!</div>
+                </div>
+            </div>
+            {% endfor %}
         </div>
     </div>
-
-    {% if is_principal %}
-    <!-- Total Users (Principal Only) -->
-    <div class="col-md-3">
-        <div class="card text-center shadow-sm h-100">
-            <div class="card-body">
-                <h6 class="card-title text-dark">Total Users</h6>
-                <h2 class="fw-bold">{{ user_count }}</h2>
-                <a href="{% url 'user_list' %}" class="btn btn-primary btn-sm mt-3">
-                    View Users
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Total Departments (Principal Only) -->
-    <div class="col-md-3">
-        <div class="card text-center shadow-sm h-100">
-            <div class="card-body">
-                <h6 class="card-title text-dark">Total Departments</h6>
-                <h2 class="fw-bold">{{ department_count }}</h2>
-                <a href="{% url 'department_list' %}" class="btn btn-primary btn-sm mt-3">
-                    View Departments
-                </a>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const greetingEl = document.getElementById("dashboard-greeting");
+    if (!greetingEl) return;
+
+    const hour = new Date().getHours();
+    let greeting = "Good Night";
+
+    if (hour >= 5 && hour < 12) {
+        greeting = "Good Morning";
+    } else if (hour >= 12 && hour < 17) {
+        greeting = "Good Afternoon";
+    } else if (hour >= 17 && hour < 21) {
+        greeting = "Good Evening";
+    }
+
+    greetingEl.textContent = greeting;
+    greetingEl.classList.toggle("night", greeting === "Good Night");
+});
+</script>
 
 {% endblock %}

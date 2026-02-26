@@ -3,132 +3,109 @@
 {% block title %}Devices | Central Hub{% endblock %}
 
 {% block content %}
-
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold">Device List</h4>
-
-    <a href="{% url 'add_device' %}" class="btn btn-primary btn-sm">
-        + Add Device
-    </a>
-</div>
-
-
-<!-- 📊 Filter by Status -->
-<div class="mb-4">
-    <h6 class="fw-bold">Filter by Status</h6>
-
-    <div class="d-flex gap-2 flex-wrap">
-
-        <!-- All Devices -->
-        <a href="{% url 'device_list' %}"
-           class="btn btn-outline-dark btn-sm 
-           {% if not current_status %}active{% endif %}">
-            All ({{ total_devices }})
-        </a>
-
-        <!-- Working Devices -->
-        <a href="?status=Working"
-           class="btn btn-outline-success btn-sm 
-           {% if current_status == 'Working' %}active{% endif %}">
-            Working
-        </a>
-
-        <!-- Reported Devices -->
-        <a href="?status=Reported"
-           class="btn btn-outline-danger btn-sm 
-           {% if current_status == 'Reported' %}active{% endif %}">
-            Reported
-        </a>
-
+<div class="table-page-layout table-page-container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0">Device List</h4>
+        <a href="{% url 'add_device' %}" class="btn btn-primary btn-sm">+ Add Device</a>
     </div>
-</div>
 
+    <div class="table-page-panel">
+        <form method="GET" class="row g-2 align-items-end mb-2">
+            <div class="col-md-10">
+                <label class="form-label mb-1">Search</label>
+                <input type="text"
+                       name="search"
+                       class="form-control"
+                       placeholder="Search by label, brand, model or type..."
+                       value="{{ search_query }}">
+                {% if current_status %}
+                <input type="hidden" name="status" value="{{ current_status }}">
+                {% endif %}
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+            </div>
+        </form>
 
-<!-- 📄 PDF Download Section -->
-<div class="mb-4">
-    <h6 class="fw-bold">Download PDF</h6>
+        <div class="table-page-toolbar">
+            <h5>Device Inventory</h5>
+            <button class="btn btn-outline-secondary btn-sm table-filter-toggle"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#deviceFilterPanel"
+                    aria-expanded="{% if current_status %}true{% else %}false{% endif %}"
+                    aria-controls="deviceFilterPanel">
+                Sort & Filter
+            </button>
+        </div>
 
-    <div class="d-flex gap-2 flex-wrap">
+        <div id="deviceFilterPanel"
+             class="collapse table-filter-panel {% if current_status %}show{% endif %}">
+            <form method="GET" class="row g-2 align-items-end">
+                <input type="hidden" name="search" value="{{ search_query }}">
+                <div class="col-md-10">
+                    <label class="form-label mb-1">Filter by Status</label>
+                    <select name="status" class="form-select">
+                        <option value="" {% if not current_status %}selected{% endif %}>All ({{ total_devices }})</option>
+                        <option value="Working" {% if current_status == "Working" %}selected{% endif %}>Working</option>
+                        <option value="Reported" {% if current_status == "Reported" %}selected{% endif %}>Reported</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Apply</button>
+                </div>
+            </form>
+        </div>
 
-        <!-- Download All -->
-        <a href="{% url 'download_devices_pdf' %}"
-           class="btn btn-outline-primary btn-sm">
-            Download All
-        </a>
-
-        <!-- Download Working -->
-        <a href="{% url 'download_devices_pdf' %}?status=Working"
-           class="btn btn-outline-success btn-sm">
-            Download Working
-        </a>
-
-        <!-- Download Reported -->
-        <a href="{% url 'download_devices_pdf' %}?status=Reported"
-           class="btn btn-outline-danger btn-sm">
-            Download Reported
-        </a>
-
-    </div>
-</div>
-
-
-{% if devices %}
-    <div class="table-responsive">
-        <table class="table table-bordered table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>Label No</th>
-                    <th>Type</th>
-                    <th>Brand</th>
-                    <th>Model</th>
-                    <th>Status</th>
-                    <th>View</th>
-                    <th>Report</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for device in devices %}
+        {% if devices %}
+        <div class="table-responsive table-page-scroll">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Label No</th>
+                        <th>Type</th>
+                        <th>Brand</th>
+                        <th>Model</th>
+                        <th>Status</th>
+                        <th>View</th>
+                        <th>Report</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in devices %}
                     <tr>
                         <td>{{ device.label_no }}</td>
                         <td>{{ device.device_type }}</td>
                         <td>{{ device.device_brand }}</td>
                         <td>{{ device.device_model }}</td>
-
-                        <!-- Status Badge -->
                         <td>
-                            <span class="badge 
+                            <span class="badge
                                 {% if device.status == 'Working' %}bg-success
                                 {% elif device.status == 'Reported' %}bg-danger
                                 {% else %}bg-secondary{% endif %}">
                                 {{ device.status }}
                             </span>
                         </td>
-
-                        <!-- View -->
                         <td>
-                            <a href="{% url 'device_detail' device.device_id %}" 
-                               class="text-decoration-none fw-semibold">
-                                View
-                            </a>
+                            <a href="{% url 'device_detail' device.device_id %}" class="text-decoration-none fw-semibold">View</a>
                         </td>
-
-                        <!-- Report Button Always Visible -->
                         <td>
-                            <a href="{% url 'report_issue' device.device_id %}" 
-                               class="btn btn-danger btn-sm">
-                                Report Issue
-                            </a>
+                            <a href="{% url 'report_issue' device.device_id %}" class="btn btn-danger btn-sm">Report Issue</a>
                         </td>
-
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-{% else %}
-    <div class="alert alert-info text-center">
-        No devices found.
-    </div>
-{% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info text-center mb-0">No devices found.</div>
+        {% endif %}
 
+        <div class="table-page-footer d-flex gap-2 flex-wrap justify-content-center">
+            <a href="{% url 'download_devices_pdf' %}?search={{ search_query }}" class="btn btn-outline-primary btn-sm">Download All</a>
+            <a href="{% url 'download_devices_pdf' %}?search={{ search_query }}&status=Working" class="btn btn-outline-success btn-sm">Download Working</a>
+            <a href="{% url 'download_devices_pdf' %}?search={{ search_query }}&status=Reported" class="btn btn-outline-danger btn-sm">Download Reported</a>
+        </div>
+    </div>
+</div>
 {% endblock %}

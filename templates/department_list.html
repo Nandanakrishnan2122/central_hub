@@ -3,109 +3,108 @@
 {% block title %}Departments | Central Hub{% endblock %}
 
 {% block content %}
+<div class="table-page-layout table-page-container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0">Department List</h4>
+        <div class="d-flex gap-2">
+           
+            <a href="{% url 'add_department' %}" class="btn btn-primary btn-sm">+ Add Department</a>
+        </div>
+    </div>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold">Department List</h4>
+    <div class="table-page-panel">
+        <form method="GET" class="row g-2 align-items-end mb-2">
+            <div class="col-md-10">
+                <label class="form-label mb-1">Search</label>
+                <input type="text"
+                       name="search"
+                       class="form-control"
+                       placeholder="Search department..."
+                       value="{{ request.GET.search }}">
+                <input type="hidden" name="sort" value="{{ request.GET.sort }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+            </div>
+        </form>
 
-    <div>
-        <a href="{% url 'dashboard' %}" class="btn btn-secondary btn-sm">
-            ← Back
-        </a>
+        <div class="table-page-toolbar">
+            <h5>Department Records</h5>
+            <button class="btn btn-outline-secondary btn-sm table-filter-toggle"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#departmentFilterPanel"
+                    aria-expanded="{% if request.GET.sort %}true{% else %}false{% endif %}"
+                    aria-controls="departmentFilterPanel">
+                Sort & Filter
+            </button>
+        </div>
 
-        <a href="{% url 'add_department' %}" class="btn btn-primary btn-sm">
-            + Add Department
-        </a>
+        <div id="departmentFilterPanel"
+             class="collapse table-filter-panel {% if request.GET.sort %}show{% endif %}">
+            <form method="GET" class="row g-2 align-items-end">
+                <input type="hidden" name="search" value="{{ request.GET.search }}">
+                <div class="col-md-10">
+                    <label class="form-label mb-1">Sort</label>
+                    <select name="sort" class="form-select">
+                        <option value="">Sort By</option>
+                        <option value="asc" {% if request.GET.sort == "asc" %}selected{% endif %}>Name (A–Z)</option>
+                        <option value="desc" {% if request.GET.sort == "desc" %}selected{% endif %}>Name (Z–A)</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Apply</button>
+                </div>
+            </form>
+        </div>
+
+        {% if departments %}
+        <div class="table-responsive table-page-scroll">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Department Name</th>
+                        <th>Teacher In Charge</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for department in departments %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ department.department_name }}</td>
+                        <td>
+                            {% if department.teacher_in_charge %}
+                                {{ department.teacher_in_charge.username }}
+                            {% else %}
+                                <span class="text-muted">Not Assigned</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'edit_department' department.department_id %}" class="btn btn-warning btn-sm">
+                                Edit
+                            </a>
+                            <form method="POST"
+                                  action="{% url 'delete_department' department.department_id %}"
+                                  style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="btn btn-danger btn-sm"
+                                        data-confirm="true"
+                                        data-confirm-message="Are you sure you want to delete this department?">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info text-center mb-0">No departments found.</div>
+        {% endif %}
     </div>
 </div>
-
-<!-- 🔎 Search & Sort Form -->
-<form method="GET" class="row g-3 mb-4">
-
-    <div class="col-md-4">
-        <input type="text" 
-               name="search" 
-               class="form-control" 
-               placeholder="Search department..."
-               value="{{ request.GET.search }}">
-    </div>
-
-    <div class="col-md-3">
-        <select name="sort" class="form-select">
-            <option value="">Sort By</option>
-            <option value="asc" {% if request.GET.sort == "asc" %}selected{% endif %}>
-                Name (A–Z)
-            </option>
-            <option value="desc" {% if request.GET.sort == "desc" %}selected{% endif %}>
-                Name (Z–A)
-            </option>
-        </select>
-    </div>
-
-    <div class="col-md-2">
-        <button type="submit" class="btn btn-primary w-100">
-            Apply
-        </button>
-    </div>
-
-</form>
-
-<!-- 📋 Department Table -->
-{% if departments %}
-<div class="table-responsive">
-    <table class="table table-bordered table-hover align-middle">
-        <thead class="table-light">
-            <tr>
-                <th>#</th>
-                <th>Department Name</th>
-                <th>Teacher In Charge</th>
-                <th class="text-center">Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for department in departments %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-
-                <td>{{ department.department_name }}</td>
-
-                <!-- 👨‍🏫 Teacher Column -->
-                <td>
-                    {% if department.teacher_in_charge %}
-                        {{ department.teacher_in_charge.username }}
-                    {% else %}
-                        <span class="text-muted">Not Assigned</span>
-                    {% endif %}
-                </td>
-
-                <!-- ✏ Edit + 🗑 Delete -->
-                <td class="text-center">
-
-                    <a href="{% url 'edit_department' department.department_id %}" 
-                       class="btn btn-warning btn-sm">
-                        Edit
-                    </a>
-
-                    <form method="POST" 
-                          action="{% url 'delete_department' department.department_id %}" 
-                          style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit" 
-                                class="btn btn-danger btn-sm"
-                                onclick="return confirm('Are you sure you want to delete this department?');">
-                            Delete
-                        </button>
-                    </form>
-
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-{% else %}
-    <div class="alert alert-info text-center">
-        No departments found.
-    </div>
-{% endif %}
-
 {% endblock %}

@@ -2,15 +2,25 @@
 
 {% block title %}Device Details | Central Hub{% endblock %}
 
+{% block extra_css %}
+<style>
+.device-detail-table-scroll {
+    max-height: min(46vh, 360px);
+    overflow: auto;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 
-<div class="container">
-    <div class="card shadow p-4">
+<div class="table-page-layout table-page-container">
+    <div class="table-page-panel">
 
         <h4 class="fw-bold mb-4 text-center">
             Device Details
         </h4>
 
+        <div class="table-responsive device-detail-table-scroll">
         <table class="table table-bordered align-middle">
 
             <tr>
@@ -73,6 +83,7 @@
             </tr>
 
         </table>
+        </div>
 
         <!-- 📍 Device Location -->
         <div class="card p-3 mb-3 bg-light">

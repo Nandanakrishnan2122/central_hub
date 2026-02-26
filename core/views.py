@@ -43,7 +43,7 @@ def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
-        role = request.POST.get("role")   # principal or staff
+        role = (request.POST.get("role") or "").strip().lower()  # principal or staff
 
         user = authenticate(request, username=username, password=password)
 
@@ -57,26 +57,17 @@ def login_view(request):
 
         user_role = user.designation.designation.strip().lower()
 
-        # 🔷 PRINCIPAL TAB
-        if role == "principal":
-            if user_role == "principal":
-                login(request, user)
-                return redirect("dashboard")
-            else:
-                messages.error(request, "You are not authorized as Principal.")
-                return redirect("login")
-
-        # 🔷 STAFF TAB
-        if role == "staff":
-            if user_role != "principal":
-                login(request, user)
-                return redirect("dashboard")
-            else:
+        # Principal accounts can only use principal login.
+        if user_role == "principal":
+            if role == "staff":
                 messages.error(request, "Please use Principal tab.")
                 return redirect("login")
+            login(request, user)
+            return redirect("dashboard")
 
-        messages.error(request, "Invalid role selected.")
-        return redirect("login")
+        # Non-principal accounts are treated as staff logins.
+        login(request, user)
+        return redirect("dashboard")
 
     return render(request, "login.html")
 
@@ -103,6 +94,7 @@ def register_view(request):
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 from core.models import Device, DeviceIssues, Department, User
 
 @login_required
@@ -114,9 +106,11 @@ def dashboard(request):
     if user_role == "principal":
 
         device_count = Device.objects.count()
+        working_device_count = Device.objects.filter(status="Working").count()
 
         # ✅ All active issues (not solved)
-        issue_count = DeviceIssues.objects.exclude(status="Solved").count()
+        reported_issues = DeviceIssues.objects.exclude(status="Solved")
+        issue_count = reported_issues.count()
 
         solved_issue_count = DeviceIssues.objects.filter(status="Solved").count()
 
@@ -127,10 +121,15 @@ def dashboard(request):
         department = user.department
 
         device_count = Device.objects.filter(department=department).count()
+        working_device_count = Device.objects.filter(
+            department=department,
+            status="Working"
+        ).count()
 
-        issue_count = DeviceIssues.objects.filter(
+        reported_issues = DeviceIssues.objects.filter(
             device__department=department
-        ).exclude(status="Solved").count()
+        ).exclude(status="Solved")
+        issue_count = reported_issues.count()
 
         solved_issue_count = DeviceIssues.objects.filter(
             device__department=department,
@@ -140,13 +139,46 @@ def dashboard(request):
         user_count = None
         department_count = None
 
+    total_issue_count = issue_count + solved_issue_count
+    solved_rate = (
+        round((solved_issue_count / total_issue_count) * 100)
+        if total_issue_count > 0
+        else 0
+    )
+    working_device_rate = (
+        round((working_device_count / device_count) * 100)
+        if device_count > 0
+        else 0
+    )
+    latest_reported_issues = reported_issues.select_related(
+        "device",
+        "device__department",
+        "reported_by",
+    ).order_by("-report_date", "-issue_id")[:5]
+
+    current_hour = timezone.localtime().hour
+    if 5 <= current_hour < 12:
+        greeting_text = "Good Morning"
+    elif 12 <= current_hour < 17:
+        greeting_text = "Good Afternoon"
+    elif 17 <= current_hour < 21:
+        greeting_text = "Good Evening"
+    else:
+        greeting_text = "Good Night"
+
     return render(request, "dashboard.html", {
         "device_count": device_count,
         "issue_count": issue_count,
         "solved_issue_count": solved_issue_count,
+        "total_issue_count": total_issue_count,
+        "solved_rate": solved_rate,
+        "working_device_count": working_device_count,
+        "working_device_rate": working_device_rate,
+        "latest_reported_issues": latest_reported_issues,
         "user_count": user_count,
         "department_count": department_count,
         "is_principal": user_role == "principal",
+        "greeting_text": greeting_text,
     })
 
 # -------------------------
@@ -559,6 +591,20 @@ def solved_issue_list(request):
             Q(device__label_no__icontains=search_query)
         )
 
+    sort_query = request.GET.get("sort")
+    if sort_query == "report_date_asc":
+        issues = issues.order_by("report_date", "issue_id")
+    elif sort_query == "report_date_desc":
+        issues = issues.order_by("-report_date", "-issue_id")
+    elif sort_query == "repaired_date_asc":
+        issues = issues.order_by("repaired_date", "issue_id")
+    elif sort_query == "repaired_date_desc":
+        issues = issues.order_by("-repaired_date", "-issue_id")
+    elif sort_query == "cost_asc":
+        issues = issues.order_by("cost", "issue_id")
+    elif sort_query == "cost_desc":
+        issues = issues.order_by("-cost", "-issue_id")
+
     return render(request, "solved_issue_list.html", {
         "issues": issues,
     })
@@ -723,6 +769,7 @@ from django.db.models import Q
 # -------------------------
 def download_solved_issue_list_pdf(request):
     search = request.GET.get("search")
+    sort = request.GET.get("sort")
 
     issues = DeviceIssues.objects.filter(status__iexact="Solved")
 
@@ -731,6 +778,19 @@ def download_solved_issue_list_pdf(request):
             Q(issue_description__icontains=search) |
             Q(device__label_no__icontains=search)
         )
+
+    if sort == "report_date_asc":
+        issues = issues.order_by("report_date", "issue_id")
+    elif sort == "report_date_desc":
+        issues = issues.order_by("-report_date", "-issue_id")
+    elif sort == "repaired_date_asc":
+        issues = issues.order_by("repaired_date", "issue_id")
+    elif sort == "repaired_date_desc":
+        issues = issues.order_by("-repaired_date", "-issue_id")
+    elif sort == "cost_asc":
+        issues = issues.order_by("cost", "issue_id")
+    elif sort == "cost_desc":
+        issues = issues.order_by("-cost", "-issue_id")
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="Solved_Issues_List.pdf"'
@@ -798,17 +858,29 @@ def device_list(request):
         else:
             devices = Device.objects.filter(department=user.department)
 
-    # Status filter
-    status_filter = request.GET.get("status")
-    if status_filter:
-        devices = devices.filter(status=status_filter)
+    search_query = (request.GET.get("search") or "").strip()
+    if search_query:
+        devices = devices.filter(
+            Q(label_no__icontains=search_query) |
+            Q(device_brand__icontains=search_query) |
+            Q(device_model__icontains=search_query) |
+            Q(device_type__device_type__icontains=search_query)
+        )
 
     total_devices = devices.count()
+
+    # Status filter
+    status_filter = (request.GET.get("status") or "").strip()
+    if status_filter not in {"Working", "Reported"}:
+        status_filter = ""
+    if status_filter:
+        devices = devices.filter(status=status_filter)
 
     return render(request, "device_list.html", {
         "devices": devices,
         "total_devices": total_devices,
         "current_status": status_filter,
+        "search_query": search_query,
     })
 
 # -------------------------
@@ -951,8 +1023,17 @@ from .models import Device
 
 def download_devices_pdf(request):
     status_filter = request.GET.get("status")
+    search_query = request.GET.get("search")
 
     devices = Device.objects.all()
+
+    if search_query:
+        devices = devices.filter(
+            Q(label_no__icontains=search_query) |
+            Q(device_brand__icontains=search_query) |
+            Q(device_model__icontains=search_query) |
+            Q(device_type__device_type__icontains=search_query)
+        )
 
     if status_filter == "Working":
         devices = devices.filter(status="Working")

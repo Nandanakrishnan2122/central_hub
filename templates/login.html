@@ -1,106 +1,325 @@
 {% extends 'base.html' %}
+
 {% block title %}Login | Central Hub{% endblock %}
 
+{% block extra_css %}
+<style>
+    body {
+        background:
+            radial-gradient(circle at 20% 18%, rgba(185, 236, 213, 0.9), transparent 42%),
+            radial-gradient(circle at 82% 14%, rgba(86, 163, 136, 0.34), transparent 38%),
+            linear-gradient(135deg, #ecf9f3 0%, #d7f3e5 40%, #c5ead9 100%);
+        overflow: hidden;
+    }
+
+    .main-shell {
+        min-height: 100vh;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        backdrop-filter: none;
+        border-radius: 0;
+        display: block;
+    }
+
+    .main-content {
+        min-height: 100vh;
+        background: transparent;
+        padding: 0;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .login-stage {
+        width: min(460px, 92vw);
+        position: relative;
+        padding-top: 68px;
+    }
+
+    .login-avatar {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 104px;
+        height: 104px;
+        border-radius: 50%;
+        background: linear-gradient(155deg, #1f4f40 0%, #2f7b63 75%, #3e9b79 100%);
+        border: 5px solid rgba(239, 253, 247, 0.9);
+        color: #f3fff8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 18px 40px rgba(31, 79, 64, 0.24);
+        z-index: 3;
+    }
+
+    .login-avatar i {
+        font-size: 2.5rem;
+    }
+
+    .login-card {
+        background: linear-gradient(160deg, rgba(255, 255, 255, 0.84) 0%, rgba(244, 252, 248, 0.86) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.78);
+        border-radius: 28px;
+        box-shadow: 0 24px 56px rgba(37, 81, 65, 0.16);
+        backdrop-filter: blur(6px);
+        padding: 3.3rem 2.1rem 1.25rem;
+    }
+
+    .login-title {
+        color: #1f4f40;
+        font-size: 1.22rem;
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .input-row {
+        display: flex;
+        margin-bottom: 0.95rem;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #3b6f5e;
+        background: #325f50;
+    }
+
+    .input-icon {
+        width: 52px;
+        flex: 0 0 52px;
+        background: #153f33;
+        color: #e9fff5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.05rem;
+    }
+
+    .input-row input {
+        border: 0;
+        border-radius: 0;
+        background: #2f5d4f;
+        color: #f2fff8;
+        padding: 0.68rem 0.9rem;
+        font-weight: 600;
+    }
+
+    .password-toggle {
+        border: 0;
+        border-left: 1px solid #3b6f5e;
+        background: #2f5d4f;
+        color: #d9f2e7;
+        width: 48px;
+        flex: 0 0 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s ease, background 0.2s ease;
+    }
+
+    .password-toggle:hover {
+        color: #ffffff;
+        background: #2b5749;
+    }
+
+    .input-row input::placeholder {
+        color: #cee7dd;
+        opacity: 1;
+    }
+
+    .input-row input:focus {
+        box-shadow: none;
+        background: #2b5749;
+        color: #ffffff;
+    }
+
+    .login-options {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-top: 0.2rem;
+        color: #44675a;
+        font-size: 0.86rem;
+        font-weight: 600;
+    }
+
+    .login-options .form-check {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .login-options .form-check-input {
+        margin-top: 0;
+        border-color: #9ac7b4;
+    }
+
+    .login-options .form-check-input:checked {
+        background-color: #2f7b63;
+        border-color: #2f7b63;
+    }
+
+    .login-options a {
+        text-decoration: none;
+        color: #2f7b63;
+        font-weight: 700;
+    }
+
+    .login-options a:hover {
+        color: #1f4f40;
+    }
+
+    .login-action-wrap {
+        margin-top: 1.2rem;
+        background: linear-gradient(180deg, #f8fffb 0%, #e7f6ef 100%);
+        border: 1px solid #d5ede2;
+        border-radius: 0 0 20px 20px;
+        padding: 0.9rem 1rem;
+        box-shadow: 0 14px 24px rgba(37, 81, 65, 0.14);
+    }
+
+    .login-action-btn {
+        width: 100%;
+        border: 0;
+        border-radius: 11px;
+        padding: 0.66rem 1rem;
+        background: linear-gradient(135deg, #2f7b63 0%, #3e9b79 100%);
+        color: #f3fff9;
+        font-size: 0.96rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        box-shadow: 0 10px 18px rgba(47, 123, 99, 0.3);
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .login-action-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 21px rgba(37, 95, 76, 0.34);
+    }
+
+    .login-alert {
+        border-radius: 12px;
+        border: 1px solid #f1c7cc;
+        background: #fff4f5;
+        color: #8b2d38;
+        font-size: 0.88rem;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 576px) {
+        .login-stage {
+            padding-top: 56px;
+        }
+
+        .login-card {
+            border-radius: 22px;
+            padding: 2.75rem 1.2rem 1rem;
+        }
+
+        .login-avatar {
+            width: 88px;
+            height: 88px;
+        }
+
+        .login-avatar i {
+            font-size: 2rem;
+        }
+
+        .login-options {
+            font-size: 0.8rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
+<div class="login-stage">
+    <div class="login-avatar">
+        <i class="bi bi-person"></i>
+    </div>
 
-<div class="row justify-content-center">
-    <div class="col-md-6">
+    <div class="login-card">
+        <div class="login-title">CentralHub System <br>Login</div>
 
-        <div class="card shadow">
-
-            <div class="card-body">
-
-                <!-- Tabs -->
-                <ul class="nav nav-tabs mb-3" id="loginTab" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" 
-                                id="principal-tab" 
-                                data-bs-toggle="tab" 
-                                data-bs-target="#principal" 
-                                type="button">
-                            Principal
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" 
-                                id="staff-tab" 
-                                data-bs-toggle="tab" 
-                                data-bs-target="#staff" 
-                                type="button">
-                            Staff
-                        </button>
-                    </li>
-                </ul>
-
-                <div class="tab-content">
-
-                    <!-- PRINCIPAL LOGIN -->
-                    <div class="tab-pane fade show active" id="principal">
-
-                        <h5 class="text-center mb-3">Principal Login</h5>
-
-                        <form method="POST">
-                            {% csrf_token %}
-                            <input type="hidden" name="role" value="principal">
-
-                            <div class="mb-3">
-                                <label>Username</label>
-                                <input type="text" name="username" class="form-control" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label>Password</label>
-                                <input type="password" name="password" class="form-control" required>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary w-100">
-                                Login as Principal
-                            </button>
-                        </form>
-                    </div>
-
-                    <!-- STAFF LOGIN -->
-                    <div class="tab-pane fade" id="staff">
-
-                        <h5 class="text-center mb-3">Staff Login</h5>
-
-                        <form method="POST">
-                            {% csrf_token %}
-                            <input type="hidden" name="role" value="staff">
-
-                            <div class="mb-3">
-                                <label>Username</label>
-                                <input type="text" name="username" class="form-control" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label>Password</label>
-                                <input type="password" name="password" class="form-control" required>
-                            </div>
-
-                            <button type="submit" class="btn btn-success w-100">
-                                Login as Staff
-                            </button>
-                        </form>
-                    </div>
-
-                </div>
-
-                <!-- Error Messages -->
-                {% if messages %}
-                    <div class="mt-3">
-                        {% for message in messages %}
-                            <div class="alert alert-danger">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-
-            </div>
+        {% if form.non_field_errors %}
+        <div class="alert login-alert mb-3" role="alert">
+            {% for error in form.non_field_errors %}
+            <div>{{ error }}</div>
+            {% endfor %}
         </div>
+        {% endif %}
 
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {% if next %}
+            <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+
+            <div class="input-row">
+                <span class="input-icon"><i class="bi bi-person-fill"></i></span>
+                <input
+                    type="text"
+                    class="form-control"
+                    name="username"
+                    placeholder="Username"
+                    value="{{ form.username.value|default_if_none:'' }}"
+                    required
+                    autofocus
+                >
+            </div>
+
+            <div class="input-row">
+                <span class="input-icon"><i class="bi bi-lock-fill"></i></span>
+                <input
+                    id="loginPassword"
+                    type="password"
+                    class="form-control"
+                    name="password"
+                    placeholder="Password"
+                    required
+                >
+                <button
+                    type="button"
+                    class="password-toggle"
+                    id="passwordToggle"
+                    aria-label="Show password"
+                    aria-pressed="false"
+                >
+                    <i class="bi bi-eye" id="passwordToggleIcon"></i>
+                </button>
+            </div>
+
+            <div class="login-options">
+                <div class="form-check">
+                </div>
+            </div>
+
+            <div class="login-action-wrap">
+                <button type="submit" class="login-action-btn">Login</button>
+            </div>
+        </form>
     </div>
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const passwordInput = document.getElementById("loginPassword");
+    const toggleButton = document.getElementById("passwordToggle");
+    const toggleIcon = document.getElementById("passwordToggleIcon");
 
+    if (!passwordInput || !toggleButton || !toggleIcon) return;
+
+    toggleButton.addEventListener("click", function () {
+        const isPassword = passwordInput.type === "password";
+        passwordInput.type = isPassword ? "text" : "password";
+        toggleIcon.className = isPassword ? "bi bi-eye-slash" : "bi bi-eye";
+        toggleButton.setAttribute("aria-label", isPassword ? "Hide password" : "Show password");
+        toggleButton.setAttribute("aria-pressed", isPassword ? "true" : "false");
+    });
+});
+</script>
 {% endblock %}
