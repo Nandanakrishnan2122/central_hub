@@ -12,11 +12,12 @@ class Department(models.Model):
     department_name = models.CharField(max_length=100, unique=True)
 
     teacher_in_charge = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="departments_in_charge"
+    settings.AUTH_USER_MODEL,
+    on_delete=models.SET_NULL,
+    null=True,
+    blank=True,
+    related_name="departments_in_charge",
+    to_field='user_id'   # ✅ ADD THIS
     )
 
     def __str__(self):
@@ -38,8 +39,26 @@ class Designation(models.Model):
 # -------------------------
 class User(AbstractUser):
     user_id = models.AutoField(primary_key=True)
-    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True)
-    designation = models.ForeignKey(Designation, on_delete=models.SET_NULL, null=True)
+
+    email = models.EmailField(unique=False)  # ✅ MUST be present
+
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    designation = models.ForeignKey(
+        Designation,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    phone = models.CharField(max_length=15, null=True, blank=True)
+    dob = models.DateField(null=True, blank=True)
+    address = models.TextField(null=True, blank=True)
+    profile_image = models.ImageField(upload_to='users/', null=True, blank=True)
 
     def __str__(self):
         return self.username
@@ -147,12 +166,21 @@ class DeviceIssues(models.Model):
     )
 
     reported_by = models.ForeignKey(
+    settings.AUTH_USER_MODEL,
+    on_delete=models.SET_NULL,
+    null=True,
+    related_name="reported_device_issues",
+    to_field='user_id'   # ✅ ADD
+    )
+
+    repaired_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
-        related_name="reported_device_issues"
+        blank=True,
+        related_name="repaired_device_issues",
+        to_field='user_id'   # ✅ ADD
     )
-
     issue_description = models.TextField()
 
     report_date = models.DateField(auto_now_add=True)
@@ -160,13 +188,7 @@ class DeviceIssues(models.Model):
     # 🔧 Repair / Solve Details
     repaired_date = models.DateField(null=True, blank=True)
     
-    repaired_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="repaired_device_issues"
-    )
+    
 
     repaired_description = models.TextField(null=True, blank=True)
 
@@ -199,3 +221,35 @@ class DeviceIssues(models.Model):
 
     def __str__(self):
         return f"{self.device.label_no} - {self.status}"
+    
+
+
+
+
+
+
+from django.utils import timezone
+
+class Notification(models.Model):
+
+    NOTIFICATION_TYPES = [
+        ('DEVICE', 'Device Added'),
+        ('ISSUE_REPORTED', 'Issue Reported'),
+        ('ISSUE_SOLVED', 'Issue Solved'),
+    ]
+
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+
+    notification_type = models.CharField(
+        max_length=20,
+        choices=NOTIFICATION_TYPES
+    )
+
+    related_id = models.IntegerField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.title

@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Notifications | Central Hub{% endblock %}
+
+{% block content %}
+
+<h4 class="fw-bold mb-4 text-center">Principal Notifications</h4>
+
+{% if notifications %}
+<div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Title</th>
+                <th>Message</th>
+                <th>Type</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for note in notifications %}
+            <tr class="{% if not note.is_read %}table-warning{% endif %}">
+                <td>{{ note.title }}</td>
+                <td>{{ note.message }}</td>
+        
+                <td>
+                    <span class="badge bg-info">
+                        {{ note.get_notification_type_display }}
+                    </span>
+                </td>
+        
+                <td>{{ note.created_at|date:"d M Y h:i A" }}</td>
+        
+                <td>
+                    {% if note.is_read %}
+                        <span class="badge bg-success">Read</span>
+                    {% else %}
+                        <span class="badge bg-danger">Unread</span>
+                    {% endif %}
+                </td>
+        
+                <td>
+                    {% if note.notification_type == "DEVICE" %}
+                        <a href="{% url 'device_detail' note.related_id %}"
+                           class="btn btn-sm btn-primary">
+                            View
+                        </a>
+        
+                    {% elif note.notification_type == "ISSUE_REPORTED" %}
+                        <a href="{% url 'issue_detail' note.related_id %}"
+                           class="btn btn-sm btn-warning">
+                            View
+                        </a>
+        
+                    {% elif note.notification_type == "ISSUE_SOLVED" %}
+                        <a href="{% url 'solved_issue_detail' note.related_id %}"
+                           class="btn btn-sm btn-success">
+                            View
+                        </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info text-center">
+    No notifications yet.
+</div>
+{% endif %}
+
+{% endblock %}

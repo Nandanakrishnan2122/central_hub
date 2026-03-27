@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% block title %}About | Central Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+
+/* 🌿 Page Background Enhancement */
+.about-wrapper {
+    background: linear-gradient(180deg, #fbfffd 0%, #f1fbf6 100%);
+    border-radius: 24px;
+    padding: 2rem;
+    border: 1px solid #d8eee2;
+    box-shadow: 0 18px 38px rgba(47, 123, 99, 0.12);
+}
+
+/* 🌿 Section Card Style */
+.about-card {
+    background: #ffffff;
+    border: 1px solid #dcefe6;
+    border-left: 6px solid var(--mint-700);
+    border-radius: 18px;
+    box-shadow: 0 12px 26px rgba(47, 123, 99, 0.08);
+    transition: all 0.25s ease;
+}
+
+.about-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 36px rgba(47, 123, 99, 0.14);
+}
+
+/* 🌿 Headings */
+.about-card h4 {
+    color: var(--mint-800);
+    font-weight: 800;
+}
+
+/* 🌿 List Style */
+.about-card ul li {
+    margin-bottom: 0.5rem;
+    color: var(--ink-700);
+}
+
+/* 🌿 Page Title */
+.about-title {
+    color: var(--mint-800);
+    font-weight: 800;
+}
+
+.about-subtitle {
+    color: var(--ink-700);
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="table-page-container">
+<div class="about-wrapper">
+
+    <!-- 🔷 Page Title -->
+    <div class="text-center mb-5">
+        <h2 class="about-title">About Central Hub</h2>
+        <p class="about-subtitle">Centralized Device & Issue Management System</p>
+    </div>
+
+    <!-- 🔷 Introduction -->
+    <div class="about-card p-4 mb-4">
+        <h4 class="mb-3">Introduction</h4>
+        <p>
+            Central Hub is a centralized asset and maintenance management system designed for institutions to efficiently manage devices and equipment. The system provides a structured platform to monitor institutional assets, track maintenance activities etc.
+        </p>
+        <p>
+            Central Hub aims to eliminate manual record-keeping and scattered documentation by offering a unified digital solution. It enhances transparency, accountability, and operational efficiency within the campus environment.
+        </p>
+    </div>
+
+    <!-- 🔷 Objectives -->
+    <div class="about-card p-4 mb-4">
+        <h4 class="mb-3">Objectives</h4>
+        <p>
+            The primary objective of Central Hub is to create a reliable and organized system for managing institutional devices and handling maintenance issues effectively.
+        </p>
+        <ul>
+            <li>Maintaining a centralized database of devices and assets</li>
+            <li>Allowing staff to report device issues easily</li>
+            <li>Tracking maintenance progress and repair details</li>
+            <li>Monitoring repair costs and device history</li>
+            <li>Providing analytical insights for decision-making</li>
+            <li>Enhancing communication between departments and administration</li>
+        </ul>
+    </div>
+
+    <!-- 🔷 User Management -->
+    <div class="about-card p-4 mb-4">
+        <h4 class="mb-3">User Management</h4>
+        <ul>
+            <li><strong>Principal:</strong> Full administrative control and system monitoring</li>
+            <li><strong>Staff:</strong> Can report issues and manage department-specific devices</li>
+        </ul>
+    </div>
+
+    <!-- 🔷 Department Management -->
+    <div class="about-card p-4 mb-4">
+        <h4 class="mb-3">Department Management</h4>
+        <p>
+            Departments can be created and assigned a teacher in charge. Devices are mapped to departments, ensuring structured asset control.
+        </p>
+    </div>
+
+    <!-- 🔷 Device Management -->
+    <div class="about-card p-4 mb-4">
+        <h4 class="mb-3">Device Management</h4>
+        <ul>
+            <li>Device type and specification</li>
+            <li>Brand and model</li>
+            <li>Cost and purchase details</li>
+            <li>Department and physical location</li>
+            <li>Status (Working / Reported)</li>
+            <li>Complete lifecycle tracking</li>
+        </ul>
+    </div>
+
+    <!-- 🔷 Issue Management -->
+    <div class="about-card p-4 mb-4">
+        <h4 class="mb-3">Issue Management</h4>
+        <ul>
+            <li>Pending</li>
+            <li>In Progress</li>
+            <li>Solved</li>
+        </ul>
+        <p>
+            Repair details including repaired date, description, precautions taken, and maintenance cost are recorded for complete traceability.
+        </p>
+    </div>
+
+    <!-- 🔷 Analytics -->
+    <div class="about-card p-4 mb-4">
+        <h4 class="mb-3">Analytics & Reporting</h4>
+        <ul>
+            <li>Device working vs non-working distribution</li>
+            <li>Issue status distribution</li>
+            <li>Solved vs unsolved analysis</li>
+            <li>Maintenance cost tracking</li>
+            <li>PDF reports generation</li>
+        </ul>
+    </div>
+
+    <!-- 🔷 Workflow -->
+    <div class="about-card p-4 mb-4">
+        <h4 class="mb-3">System Workflow</h4>
+        <ul>
+            <li>A device is added and assigned to a department</li>
+            <li>Staff report issues when problems occur</li>
+            <li>Status updates as maintenance progresses</li>
+            <li>Repair details and costs recorded upon resolution</li>
+            <li>Historical data stored for analysis and auditing</li>
+        </ul>
+    </div>
+
+    <!-- 🔷 Future Scope -->
+    <div class="about-card p-4 mb-4">
+        <h4 class="mb-3">Future Scope</h4>
+        <ul>
+            <li>Email notification system</li>
+            <li>Real-time alerts</li>
+            <li>Predictive maintenance analytics</li>
+            <li>Advanced financial reporting</li>
+            <li>Inventory threshold alerts</li>
+        </ul>
+    </div>
+
+    <!-- 🔷 Conclusion -->
+    <div class="about-card p-4 mb-4">
+        <h4 class="mb-3">Conclusion</h4>
+        <p>
+            Central Hub transforms institutional asset management into a centralized, transparent, and intelligent system supporting efficient campus operations and sustainability.
+        </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center mt-4">
+        <p class="text-muted">© {{ now|date:"Y" }} Central Hub System</p>
+    </div>
+
+</div>
+</div>
+
+{% endblock %}

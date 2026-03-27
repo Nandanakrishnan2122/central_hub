@@ -38,6 +38,7 @@ urlpatterns = [
     path('devices/', views.device_list, name='device_list'),
     #path('device/<int:device_id>/', views.device_detail, name='device_detail'),
     path('devices/add/', views.add_device, name='add_device'),
+    
 
 
     path('device-locations/', views.device_location_list, name='device_location_list'),
@@ -67,10 +68,28 @@ urlpatterns = [
     path('device/edit/<int:pk>/', views.edit_device, name='edit_device'),
     path('device/<int:pk>/pdf/', views.download_device_pdf, name='download_device_pdf'),
     path("devices/pdf/", views.download_devices_pdf, name="download_devices_pdf"),
-    
+    path('device/delete/<int:device_id>/', views.delete_device, name='delete_device'),
+    path('device/<int:device_id>/report-history/',views.device_report_history,name='device_report_history'),
+    path('device/<int:device_id>/report-history/pdf/',views.download_device_report_history_pdf,name='download_device_report_history_pdf'),
+    path('device-type/add/', views.add_device_type, name='add_device_type'),
+    path('device-type/delete/<int:id>/', views.delete_device_type, name='delete_device_type'),
+    path('device/delete/<int:id>/', views.delete_device, name='delete_device'),
 
+    path('analytics/devices/', views.device_analytics, name='device_analytics'),
+    path('analytics/issues/', views.issue_analytics, name='issue_analytics'),
+    path('analytics/solved/', views.solved_analytics, name='solved_analytics'),
+    path('analytics/working/', views.working_analytics, name='working_analytics'),
 
     path('users/', views.user_list, name='user_list'),
     path('users/add/', views.add_user, name='add_user'),
     path('users/edit/<int:pk>/', views.edit_user, name='edit_user'),
+    path('user/delete/<int:user_id>/',views.delete_user,name='delete_user'),
+    path('users/<int:id>/', views.user_details, name='user_details'),
+    
+    path('about/', views.about, name='about'),
+
+    path('notifications/', views.notifications, name='notifications'),
 ]
+
+
+

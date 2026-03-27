@@ -112,25 +112,45 @@
         {% endif %}
 
         <!-- 🔘 Buttons -->
+        <!-- 🔘 Buttons -->
         <div class="text-center mt-4">
+
             <a href="{% url 'device_list' %}" class="btn btn-secondary">
                 Back
             </a>
-
+        
             <a href="{% url 'edit_device' device.device_id %}" 
                class="btn btn-warning">
                 Edit
             </a>
-
+        
             <a href="{% url 'device_issues' device.device_id %}" 
                class="btn btn-info">
                 View Issues
             </a>
-
+        
+            <a href="{% url 'report_issue' device.device_id %}" 
+               class="btn btn-danger">
+                Report Issue
+            </a>
+        
+            <a href="{% url 'device_report_history' device.device_id %}" 
+               class="btn btn-outline-danger">
+                Report History ({{ report_count }})
+            </a>
+        
             <a href="{% url 'download_device_pdf' device.device_id %}" 
                class="btn btn-danger">
                 Download PDF
             </a>
+        
+            <!-- ✅ Delete Button -->
+            <a href="{% url 'delete_device' device.device_id %}" 
+               class="btn btn-dark"
+               onclick="return confirm('Are you sure you want to delete this device?');">
+                Delete
+            </a>
+        
         </div>
 
     </div>

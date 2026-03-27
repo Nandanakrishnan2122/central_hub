@@ -19,30 +19,38 @@ class LoginForm(AuthenticationForm):
 
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import User, Department, Designation
+from .models import User, Designation
+
+
+from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from .models import User
 
 class RegisterForm(UserCreationForm):
-
-    department = forms.ModelChoiceField(
-        queryset=Department.objects.all(),
-        required=True
-    )
 
     class Meta:
         model = User
         fields = [
-            "username",
-            "password1",
-            "password2",
-            "department",
+            'username',
+            'email',
+            'phone',
+            'dob',
+            'address',
+            'department',
+            'designation',
+            'profile_image',
+            'password1',
+            'password2'
         ]
-
     def save(self, commit=True):
         user = super().save(commit=False)
 
-        # Automatically assign staff
+        # Automatically assign Staff designation
         staff_designation = Designation.objects.get(designation__iexact="staff")
         user.designation = staff_designation
+
+        # Department will remain NULL until principal assigns it
+        user.department = None
 
         if commit:
             user.save()
@@ -147,3 +155,19 @@ class ReportIssueForm(forms.ModelForm):
                 'placeholder': 'Describe the issue clearly...'
             })
         }
+from django import forms
+from .models import User
+
+class EditUserForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = [
+            'username',
+            'email',
+            'phone',
+            'dob',
+            'address',
+            'department',
+            'designation',
+            'profile_image'
+        ]

@@ -258,6 +258,15 @@ body {
     position: relative;
     z-index: 1;
 }
+/* Simple Pop-Up Animation */
+.stat-card {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 18px 35px rgba(30, 71, 57, 0.25);
+}
 
 .recent-list {
     background: #ffffff;
@@ -413,26 +422,41 @@ body {
     </div>
 
     <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-value">{{ device_count }}</div>
-            <div class="stat-label">{% if is_principal %}Total Devices{% else %}Department Devices{% endif %}</div>
-            <div class="stat-trend">{{ working_device_rate }}% working now</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value">{{ issue_count }}</div>
-            <div class="stat-label">Open Issues</div>
-            <div class="stat-trend">Pending + in progress</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value">{{ solved_issue_count }}</div>
-            <div class="stat-label">Solved Issues</div>
-            <div class="stat-trend">{{ solved_rate }}% resolution rate</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value">{{ working_device_count }}</div>
-            <div class="stat-label">Working Devices</div>
-            <div class="stat-trend">{{ working_device_count }} / {{ device_count }} running</div>
-        </div>
+
+        <a href="{% url 'device_analytics' %}" class="text-decoration-none">
+            <div class="stat-card">
+                <div class="stat-value">{{ device_count }}</div>
+                <div class="stat-label">
+                    {% if is_principal %}Total Devices{% else %}Department Devices{% endif %}
+                </div>
+                <div class="stat-trend">{{ working_device_rate }}% working now</div>
+            </div>
+        </a>
+    
+        <a href="{% url 'issue_analytics' %}" class="text-decoration-none">
+            <div class="stat-card">
+                <div class="stat-value">{{ issue_count }}</div>
+                <div class="stat-label">Open Issues</div>
+                <div class="stat-trend">Pending + in progress</div>
+            </div>
+        </a>
+    
+        <a href="{% url 'solved_analytics' %}" class="text-decoration-none">
+            <div class="stat-card">
+                <div class="stat-value">{{ solved_issue_count }}</div>
+                <div class="stat-label">Solved Issues</div>
+                <div class="stat-trend">{{ solved_rate }}% resolution rate</div>
+            </div>
+        </a>
+    
+        <a href="{% url 'working_analytics' %}" class="text-decoration-none">
+            <div class="stat-card">
+                <div class="stat-value">{{ working_device_count }}</div>
+                <div class="stat-label">Working Devices</div>
+                <div class="stat-trend">{{ working_device_count }} / {{ device_count }} running</div>
+            </div>
+        </a>
+    
     </div>
 
     <div class="issues-section">

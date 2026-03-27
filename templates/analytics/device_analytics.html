@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Device Analytics | Central Hub{% endblock %}
+
+{% block content %}
+
+<h3 class="text-center mb-4 fw-bold">Device Status Distribution</h3>
+
+<div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+        <canvas id="devicePieChart"></canvas>
+    </div>
+</div>
+
+<!-- 🔥 Button -->
+<div class="text-center mt-4">
+    <a href="{% url 'device_list' %}" 
+       class="btn btn-outline-success px-4 shadow-sm">
+        View Device List
+    </a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const chartData = JSON.parse('{{ chart_data|escapejs }}');
+
+const working = chartData.working;
+const reported = chartData.reported;
+const total = working + reported;
+
+const workingPercent = total > 0 ? ((working / total) * 100).toFixed(1) : 0;
+
+// 🔥 Center Text Plugin
+const centerTextPlugin = {
+    id: 'centerText',
+    beforeDraw(chart) {
+        const { width, height, ctx } = chart;
+
+        ctx.restore();
+
+        // Main percentage
+        ctx.font = "700 20px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#2f7b63";
+
+        ctx.fillText(workingPercent + "%", width / 2, height / 2 - 6);
+
+        // Subtitle
+        ctx.font = "500 12px sans-serif";
+        ctx.fillStyle = "#555";
+        ctx.fillText("Working", width / 2, height / 2 + 14);
+
+        ctx.save();
+    }
+};
+
+const ctx = document.getElementById('devicePieChart');
+
+new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Working', 'Reported'],
+        datasets: [{
+            data: [working, reported],
+            backgroundColor: ['#2f7b63', '#dc3545']
+        }]
+    },
+    options: {
+        cutout: '70%',
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    },
+    plugins: [centerTextPlugin]
+});
+</script>
+
+{% endblock %}

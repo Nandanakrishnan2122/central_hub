@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Device Type | Central Hub{% endblock %}
+
+{% block content %}
+
+<div class="table-page-layout table-page-container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+
+            <div class="card shadow-sm p-4">
+                <h4 class="fw-bold mb-4 text-center">
+                    Add New Device Type
+                </h4>
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <!-- Device Type Field -->
+                    <div class="mb-3">
+                        <label class="form-label">Device Type Name</label>
+                        <input type="text"
+                               name="device_type"
+                               class="form-control"
+                               placeholder="Enter device type (e.g., Projector, Printer, CPU)"
+                               required>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'device_list' %}"
+                           class="btn btn-secondary">
+                            Cancel
+                        </a>
+
+                        <button type="submit"
+                                class="btn btn-success">
+                            Save Device Type
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

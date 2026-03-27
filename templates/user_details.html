@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}User Details{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <div class="card p-4 shadow-sm">
+
+        <h4 class="text-center mb-4">User Details</h4>
+
+      <!-- Profile Image -->
+<div class="text-center mb-3">
+    {% if user.profile_image %}
+        <img src="{{ user.profile_image.url }}" 
+             style="width:150px;height:150px;object-fit:cover;border-radius:8px;border:1px solid #ccc;">
+    {% else %}
+        <img src="https://via.placeholder.com/150" 
+             style="width:150px;height:150px;object-fit:cover;border-radius:8px;border:1px solid #ccc;">
+    {% endif %}
+</div>
+
+        <p><strong>Name:</strong> {{ user.username }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Phone:</strong> {{ user.phone|default:"Not Provided" }}</p>
+
+        <p><strong>DOB:</strong>
+            {% if user.dob %}
+                {{ user.dob }}
+            {% else %}
+                Not Provided
+            {% endif %}
+        </p>
+
+        <p><strong>Department:</strong> {{ user.department|default:"Not Assigned" }}</p>
+        <p><strong>Designation:</strong> {{ user.designation|default:"Not Assigned" }}</p>
+
+        <p><strong>Address:</strong> {{ user.address|default:"Not Provided" }}</p>
+
+        
+        <div class="text-center mt-3">
+            {% if request.user.designation and request.user.designation.designation|lower == "principal" %}
+                <a href="{% url 'user_list' %}" class="btn btn-secondary">
+                    Back
+                </a>
+            {% else %}
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                    Back
+                </a>
+            {% endif %}
+        
+            <a href="{% url 'edit_user' user.user_id %}" class="btn btn-warning">
+                Edit
+            </a>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

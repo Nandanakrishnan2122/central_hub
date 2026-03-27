@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Device Report History | Central Hub{% endblock %}
+
+{% block content %}
+
+<h4 class="fw-bold mb-4 text-center">
+    Report History - {{ device.label_no }}
+</h4>
+
+<!-- 🔥 Total Repair Cost -->
+<div class="alert alert-success text-center">
+    <strong>Total Repair Cost:</strong> ₹ {{ total_cost|floatformat:2 }}
+</div>
+
+{% if issues %}
+<div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Reported Date</th>
+                <th>Repaired Date</th>
+                <th>Repaired Description</th>
+                <th>Cost</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for issue in issues %}
+            <tr>
+                <td>{{ issue.issue_description }}</td>
+
+                <td>
+                    <span class="badge
+                        {% if issue.status == 'Solved' %}bg-success
+                        {% else %}bg-warning text-dark{% endif %}">
+                        {{ issue.status }}
+                    </span>
+                </td>
+
+                <td>{{ issue.report_date|date:"d M Y" }}</td>
+
+                <td>
+                    {% if issue.repaired_date %}
+                        {{ issue.repaired_date|date:"d M Y" }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if issue.repaired_description %}
+                        {{ issue.repaired_description }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if issue.cost %}
+                        ₹ {{ issue.cost }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info text-center">
+    No reports found for this device.
+</div>
+{% endif %}
+
+<div class="text-center mt-4">
+    <a href="{% url 'device_detail' device.device_id %}" 
+       class="btn btn-secondary">
+        Back to Device
+    </a>
+</div>
+<br>
+<div class="text-center mb-3">
+    <a href="{% url 'download_device_report_history_pdf' device.device_id %}" 
+       class="btn btn-danger">
+        Download Report History PDF
+    </a>
+</div>
+
+{% endblock %}

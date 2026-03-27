@@ -76,15 +76,23 @@ def logout_view(request):
     logout(request)
     return redirect("login")
 
+from django.shortcuts import render, redirect
+from django.contrib.auth import login
+from .forms import RegisterForm
+
 def register_view(request):
-    form = RegisterForm()
 
     if request.method == 'POST':
-        form = RegisterForm(request.POST)
+        form = RegisterForm(request.POST, request.FILES)   # ✅ FIX
+
         if form.is_valid():
             user = form.save()
-            login(request, user)
+
+            login(request, user)   # auto login
             return redirect('dashboard')
+
+    else:
+        form = RegisterForm()
 
     return render(request, 'register.html', {'form': form})
 
@@ -101,7 +109,7 @@ from core.models import Device, DeviceIssues, Department, User
 def dashboard(request):
 
     user = request.user
-    user_role = user.designation.designation.strip().lower()
+    user_role = user.designation.designation.strip().lower() if user.designation else None
 
     if user_role == "principal":
 
@@ -280,20 +288,126 @@ def edit_department(request, pk):
         'teachers': teachers
     })
 
+# -------------------------
+# USER_DETIALS
+# -------------------------
+from django.shortcuts import render, get_object_or_404
+from .models import User
+
+def user_details(request, id):
+    user = get_object_or_404(User, user_id=id)
+    return render(request, 'user_details.html', {'user': user})
 
 
+# -------------------------
+# USER_PROFILE
+# -------------------------
+from django.contrib.auth.decorators import login_required
 
+@login_required
+def user_details(request, id):
+    user_obj = get_object_or_404(User, user_id=id)
+
+    # 🔒 Security: user can only see own profile (optional but recommended)
+    if request.user.user_id != user_obj.user_id:
+        return redirect('dashboard')
+
+    return render(request, 'user_details.html', {'user': user_obj})
 # -------------------------
 # DEVICE_DETAIL
 # -------------------------
 
 from django.shortcuts import render, get_object_or_404
-from .models import Device
+from .models import Device, DeviceIssues
 
 def device_detail(request, pk):
     device = get_object_or_404(Device, device_id=pk)
-    return render(request, 'device_detail.html', {'device': device})
 
+    report_count = DeviceIssues.objects.filter(device=device).count()
+
+    return render(request, "device_detail.html", {
+        "device": device,
+        "report_count": report_count
+    })
+
+
+# -------------------------
+# DEVICE_REPORT_HISTORY
+# -------------------------
+from django.db.models import Sum
+
+@login_required
+def device_report_history(request, device_id):
+    device = get_object_or_404(Device, device_id=device_id)
+
+    issues = DeviceIssues.objects.filter(device=device).order_by("-report_date")
+    total_cost = DeviceIssues.objects.filter(
+        device=device,
+        status="Solved"
+    ).aggregate(total=Sum("cost"))["total"] or 0
+
+    return render(request, "device_report_history.html", {
+        "device": device,
+        "issues": issues,
+        "total_cost": total_cost
+    })
+    
+# -------------------------
+# DOWNLOAD_DEVICE_REPORT_HISTORY 
+# -------------------------
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib import colors
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib import styles
+from reportlab.lib.units import inch
+from reportlab.platypus import ListFlowable
+from django.http import HttpResponse
+from django.db.models import Sum
+
+def download_device_report_history_pdf(request, device_id):
+    device = get_object_or_404(Device, device_id=device_id)
+    issues = DeviceIssues.objects.filter(device=device).order_by("-report_date")
+
+    total_cost = issues.filter(status="Solved").aggregate(
+        total=Sum("cost")
+    )["total"] or 0
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="Report_History_{device.label_no}.pdf"'
+
+    doc = SimpleDocTemplate(response)
+    elements = []
+
+    style = styles.getSampleStyleSheet()
+
+    elements.append(Paragraph(f"<b>Report History - {device.label_no}</b>", style["Title"]))
+    elements.append(Spacer(1, 0.3 * inch))
+    elements.append(Paragraph(f"<b>Total Repair Cost:</b> ₹ {total_cost}", style["Normal"]))
+    elements.append(Spacer(1, 0.3 * inch))
+
+    data = [["Description", "Status", "Reported", "Repaired", "Cost"]]
+
+    for issue in issues:
+        data.append([
+            issue.issue_description,
+            issue.status,
+            issue.report_date.strftime("%d-%m-%Y"),
+            issue.repaired_date.strftime("%d-%m-%Y") if issue.repaired_date else "-",
+            f"₹ {issue.cost}" if issue.cost else "-"
+        ])
+
+    table = Table(data, repeatRows=1)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
+        ('FONTSIZE', (0,0), (-1,-1), 8),
+    ]))
+
+    elements.append(table)
+    doc.build(elements)
+
+    return response
 # -------------------------
 # EDIT_DEVICE
 # -------------------------
@@ -325,28 +439,59 @@ def device_location_list(request):
     return render(request, "device_location_list.html", {"locations": locations})
 
 
-# -------------------------
-# REPORT ISSUES
-# -------------------------
+from django.shortcuts import get_object_or_404, render, redirect
+from django.db.models import Q
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from .forms import ReportIssueForm
+from .models import Device, Notification
+
 
 @login_required
 def report_issue(request, device_id):
     device = get_object_or_404(Device, device_id=device_id)
+    user = request.user
 
+    # 🔒 Permission Check
+    if not user.designation:
+        messages.error(request, "Access denied.")
+        return redirect("device_list")
+
+    user_role = user.designation.designation.strip().lower()
+
+    # 👨‍💼 Principal → Allowed for all
+    if user_role != "principal":
+
+        # 👨‍🏫 Staff → Only own department + Office
+        if device.department != user.department and \
+           device.department.department_name.lower() != "office":
+            messages.error(request, "You are not allowed to report this device.")
+            return redirect("device_list")
+
+    # ✅ Continue normal logic
     if request.method == "POST":
         form = ReportIssueForm(request.POST)
+
         if form.is_valid():
             issue = form.save(commit=False)
             issue.device = device
-            issue.reported_by = request.user
+            issue.reported_by = user
             issue.status = "Reported"
             issue.save()
 
-            # 🔴 UPDATE DEVICE STATUS HERE
-            device.status = "Reported"   # or "Non Working"
+            # 🔴 Update device status
+            device.status = "Reported"
             device.save()
 
+            # 🔔 Create Notification
+            Notification.objects.create(
+                title="Issue Reported",
+                message=f"{user.username} reported issue for device {device.label_no}",
+                notification_type="ISSUE_REPORTED",
+                related_id=issue.issue_id
+            )
+
+            messages.success(request, "Issue reported successfully.")
             return redirect("issue_detail", issue_id=issue.issue_id)
 
     else:
@@ -356,15 +501,17 @@ def report_issue(request, device_id):
         "device": device,
         "form": form
     })
-
-
 # -------------------------
 # ISSUE SOLVED 
 # -------------------------
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
-from .models import DeviceIssues   # IMPORTANT
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import DeviceIssues, Notification
 
+
+@login_required
 def issue_solved(request, pk):
     issue = get_object_or_404(DeviceIssues, issue_id=pk)
 
@@ -375,6 +522,15 @@ def issue_solved(request, pk):
         issue.cost = request.POST.get("cost")
         issue.save()
 
+        # 🔔 Create Notification
+        Notification.objects.create(
+            title="Issue Solved",
+            message=f"Issue solved for device {issue.device.label_no}",
+            notification_type="ISSUE_SOLVED",
+            related_id=issue.issue_id
+        )
+
+        messages.success(request, "Issue marked as solved successfully.")
         return redirect('solved_issue_list')
 
     return render(request, 'issue_solved.html', {
@@ -386,8 +542,11 @@ def issue_solved(request, pk):
 # -------------------------
 @login_required
 def device_type_list(request):
-    device_types = DeviceType.objects.all()
-    return render(request, "device_type_list.html", {"device_types": device_types})
+    types = DeviceType.objects.all().order_by("device_type")
+
+    return render(request, "device_type_list.html", {
+        "types": types
+    })
 
 
 # -------------------------
@@ -408,19 +567,45 @@ def index(request):
 # -------------------------
 # ADD_DEVICE
 # -------------------------
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Notification
+from .forms import DeviceForm
 
+
+@login_required
 def add_device(request):
     if request.method == 'POST':
         form = DeviceForm(request.POST, request.FILES)
+
         if form.is_valid():
-            form.save()
+            device = form.save()  
+            Notification.objects.create(
+            title="New Device Added",
+            message=f"{request.user.username} added device {device.label_no}",
+            notification_type="DEVICE",
+            related_id=device.device_id
+        )
+
+            messages.success(request, "Device added successfully.")
             return redirect('device_list')
+
     else:
         form = DeviceForm()
 
     return render(request, 'add_device.html', {'form': form})
 
 
+# -------------------------
+#   DELETE_DEVICE
+# -------------------------
+from django.shortcuts import get_object_or_404, redirect
+
+def delete_device(request, id):
+    device = get_object_or_404(Device, device_id=id)
+    device.delete()
+    return redirect('device_list')
 
 # -------------------------
 # USER_LIST
@@ -487,27 +672,28 @@ def add_user(request):
 # -------------------------
 # EDIT_USER
 # -------------------------
+from .forms import EditUserForm
+
 def edit_user(request, pk):
-    user = get_object_or_404(User, pk=pk)
-    departments = Department.objects.all()
-    designations = Designation.objects.all()
+    user = get_object_or_404(User, user_id=pk)
 
-    if request.method == "POST":
-        user.username = request.POST.get("username")
-        user.email = request.POST.get("email")
-        user.department = Department.objects.get(pk=request.POST.get("department"))
-        user.designation = Designation.objects.get(pk=request.POST.get("designation"))
-        user.save()
+    if request.method == 'POST':
+        form = EditUserForm(request.POST, request.FILES, instance=user)
 
-        return redirect("user_list")
+        if form.is_valid():
+            obj = form.save(commit=False)
 
-    return render(request, "edit_user.html", {
-        "user_obj": user,
-        "departments": departments,
-        "designations": designations
-    })
+            # Only principal can change department
+            if not (request.user.designation and request.user.designation.designation.lower() == "principal"):
+                obj.department = user.department
 
+            obj.save()
+            return redirect('user_details', id=user.user_id)
 
+    else:
+        form = EditUserForm(instance=user)
+
+    return render(request, 'edit_user.html', {'form': form})
 
 # -------------------------
 # ISSUE_LIST
@@ -834,8 +1020,7 @@ def download_solved_issue_list_pdf(request):
 # -------------------------
 # DEVICE_LIST
 # -------------------------
-from django.db.models import Count
-
+from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from core.models import Device
 
@@ -854,10 +1039,14 @@ def device_list(request):
         if user_role == "principal":
             devices = Device.objects.all()
 
-        # 👨‍🏫 STAFF → See only department devices
+        # 👨‍🏫 STAFF → See own department + Office department
         else:
-            devices = Device.objects.filter(department=user.department)
+            devices = Device.objects.filter(
+                Q(department=user.department) |
+                Q(department__department_name__iexact="office")
+            )
 
+    # 🔍 Search
     search_query = (request.GET.get("search") or "").strip()
     if search_query:
         devices = devices.filter(
@@ -867,9 +1056,10 @@ def device_list(request):
             Q(device_type__device_type__icontains=search_query)
         )
 
+    # 📊 Total count before status filter
     total_devices = devices.count()
 
-    # Status filter
+    # 🔎 Status filter
     status_filter = (request.GET.get("status") or "").strip()
     if status_filter not in {"Working", "Reported"}:
         status_filter = ""
@@ -882,7 +1072,6 @@ def device_list(request):
         "current_status": status_filter,
         "search_query": search_query,
     })
-
 # -------------------------
 # DOWNLOAD_DEVICE_DETIALS__LIST_pdf 
 # -------------------------
@@ -1074,7 +1263,9 @@ def download_devices_pdf(request):
     return response
 
 
-
+# -------------------------
+# DELETE ISSUE
+# -------------------------
 
 
 from django.shortcuts import get_object_or_404, redirect
@@ -1095,3 +1286,265 @@ def delete_issue(request, issue_id):
         issue.delete()
 
     return redirect("issue_list")
+
+
+# -------------------------
+# DEVICE_ANALYTICS 
+# -------------------------
+import json
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from .models import Device
+
+@login_required
+def device_analytics(request):
+
+    user = request.user
+
+    if user.designation.designation.lower() == "principal":
+        devices = Device.objects.all()
+    else:
+        devices = Device.objects.filter(department=user.department)
+
+    working = devices.filter(status="Working").count()
+    reported = devices.filter(status="Reported").count()
+
+    context = {
+        "chart_data": json.dumps({
+            "working": working,
+            "reported": reported
+        })
+    }
+
+    return render(request, "analytics/device_analytics.html", context)
+
+
+# -------------------------
+# ISSUE_ANALYTICS 
+# -------------------------
+
+@login_required
+def issue_analytics(request):
+
+    user = request.user
+
+    if user.designation and user.designation.designation.lower() == "principal":
+        issues = DeviceIssues.objects.all()
+    else:
+        issues = DeviceIssues.objects.filter(device__department=user.department)
+
+    pending = issues.filter(status="Pending").count()
+    progress = issues.filter(status="In Progress").count()
+    solved = issues.filter(status="Solved").count()
+
+    import json
+
+    context = {
+    "chart_data": json.dumps({
+        "pending": pending,
+        "progress": progress,
+        "solved": solved
+    })
+}
+
+    return render(request, "analytics/issue_analytics.html", context)
+
+# -------------------------
+# SOLVED_ANALYTICS 
+# -------------------------
+
+
+
+import json
+from django.db.models import Count
+from .models import DeviceIssues
+
+@login_required
+def solved_analytics(request):
+    user = request.user
+
+    if user.designation and user.designation.designation.lower() == "principal":
+        issues = DeviceIssues.objects.all()
+    else:
+        issues = DeviceIssues.objects.filter(device__department=user.department)
+
+    solved = issues.filter(status="Solved").count()
+    unsolved = issues.exclude(status="Solved").count()
+
+    context = {
+        "chart_data": json.dumps({
+            "solved": solved,
+            "unsolved": unsolved
+        })
+    }
+
+    return render(request, "analytics/solved_analytics.html", context)
+
+
+
+# -------------------------
+# WORKING_ANALYTICS 
+# -------------------------
+
+import json
+from django.contrib.auth.decorators import login_required
+from .models import Device
+
+@login_required
+def working_analytics(request):
+    user = request.user
+
+    if user.designation and user.designation.designation.lower() == "principal":
+        devices = Device.objects.all()
+    else:
+        devices = Device.objects.filter(department=user.department)
+
+    working = devices.filter(status="Working").count()
+    non_working = devices.exclude(status="Working").count()
+
+    context = {
+        "chart_data": json.dumps({
+            "working": working,
+            "non_working": non_working
+        })
+    }
+
+    return render(request, "analytics/working_analytics.html", context)
+
+# -------------------------
+# DELETE_DEVICE
+# -------------------------
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Device
+
+@login_required
+def delete_device(request, device_id):
+    device = get_object_or_404(Device, device_id=device_id)
+
+    if request.method == "POST":
+        device.delete()
+
+    return redirect("device_list")
+
+
+# -------------------------
+# DELETE_USER
+# -------------------------
+
+
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+
+@login_required
+def delete_user(request, user_id):
+    user_obj = get_object_or_404(User, user_id=user_id)
+
+    # 🔒 Prevent deleting Principal
+    if user_obj.designation and user_obj.designation.designation.lower() == "principal":
+        messages.error(request, "Principal account cannot be deleted.")
+        return redirect("user_list")
+
+    if request.method == "POST":
+        user_obj.delete()
+        messages.success(request, "User deleted successfully.")
+
+    return redirect("user_list")
+
+
+# -------------------------
+# ADD_DEVICE_TYPE
+# -------------------------
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import DeviceType
+
+
+@login_required
+def add_device_type(request):
+
+    
+    if not request.user.designation or request.user.designation.designation.lower() != "principal":
+        messages.error(request, "Only Principal can add device types.")
+        return redirect("device_type_list")  
+
+    if request.method == "POST":
+        name = request.POST.get("device_type", "").strip()
+
+        if not name:
+            messages.error(request, "Device type name cannot be empty.")
+            return render(request, "add_device_type.html")
+
+        
+        if DeviceType.objects.filter(device_type__iexact=name).exists():
+            messages.error(request, "Device type already exists.")
+            return render(request, "add_device_type.html")
+
+        DeviceType.objects.create(device_type=name)
+        messages.success(request, "Device type added successfully.")
+
+        return redirect("device_type_list")   
+    return render(request, "add_device_type.html")
+
+
+
+
+# -------------------------
+# DELETE_DEVICE_TYPE
+# -------------------------
+
+from django.shortcuts import get_object_or_404
+
+@login_required
+def delete_device_type(request, id):
+
+    # 🔒 Principal only
+    if not request.user.designation or request.user.designation.designation.lower() != "principal":
+        messages.error(request, "Only Principal can delete device types.")
+        return redirect("device_type_list")
+
+    device_type = get_object_or_404(DeviceType, device_type_id=id)
+
+    # 🔥 Prevent delete if used in Device
+    if Device.objects.filter(device_type=device_type).exists():
+        messages.error(request, "Cannot delete. This type is already used by devices.")
+        return redirect("device_type_list")
+
+    device_type.delete()
+    messages.success(request, "Device type deleted successfully.")
+
+    return redirect("device_type_list")
+
+
+# -------------------------
+# NOTIFICATIONS
+# -------------------------
+@login_required
+def notifications(request):
+
+    if not request.user.designation or request.user.designation.designation.lower() != "principal":
+        return redirect("dashboard")
+
+    notifications = Notification.objects.all().order_by("-created_at")
+
+    # ✅ Mark all as read
+    notifications.filter(is_read=False).update(is_read=True)
+
+    return render(request, "notifications.html", {
+        "notifications": notifications
+    })
+
+# -------------------------
+# ABOUT
+# -------------------------
+from django.shortcuts import render
+from django.utils import timezone
+
+def about(request):
+    return render(request, "about.html", {
+        "now": timezone.now()
+    })

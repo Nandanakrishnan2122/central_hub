@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Device Types | Central Hub{% endblock %}
+
+{% block content %}
+
+<h4 class="fw-bold mb-4 text-center">Device Types</h4>
+
+<div class="text-end mb-3">
+    {% if user.designation and user.designation.designation|lower == "principal" %}
+    <a href="{% url 'add_device_type' %}" class="btn btn-primary btn-sm">
+        + Add Device Type
+    </a>
+    {% endif %}
+</div>
+
+{% if types %}
+<table class="table table-bordered table-hover align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>Device Type</th>
+            {% if user.designation and user.designation.designation|lower == "principal" %}
+            <th class="text-center">Delete</th>
+            {% endif %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for type in types %}
+        <tr>
+            <td>{{ type.device_type }}</td>
+
+            {% if user.designation and user.designation.designation|lower == "principal" %}
+            <td class="text-center">
+                <form method="POST"
+                      action="{% url 'delete_device_type' type.device_type_id %}"
+                      style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="btn btn-outline-danger btn-sm"
+                            onclick="return confirm('Are you sure you want to delete this device type?');">
+                        Delete
+                    </button>
+                </form>
+            </td>
+            {% endif %}
+
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="alert alert-info text-center">
+    No device types found.
+</div>
+{% endif %}
+
+{% endblock %}
