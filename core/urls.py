@@ -34,6 +34,10 @@ urlpatterns = [
     path('departments/add/', views.add_department, name='add_department'),
     path('departments/delete/<int:pk>/', views.delete_department, name='delete_department'),
     path('departments/edit/<int:pk>/', views.edit_department, name='edit_department'),
+    path('department/<int:department_id>/devices/', views.department_devices, name='department_devices'),
+    path('department/<int:department_id>/<str:device_type>/',views.department_devices_by_type,name='department_devices_by_type'),
+    path('department/<int:department_id>/device-types-pdf/',views.download_department_device_types_pdf,name='download_department_device_types_pdf'),
+    path('department/<int:department_id>/<str:device_type>/devices-pdf/',views.download_department_devices_pdf,name='download_department_devices_pdf'),
     
     path('devices/', views.device_list, name='device_list'),
     #path('device/<int:device_id>/', views.device_detail, name='device_detail'),

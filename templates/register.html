@@ -17,60 +17,80 @@
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                 
-                    <div class="mb-3">
-                        <label>Username</label>
-                        {{ form.username }}
-                    </div>
-                
-                    <div class="mb-3">
-                        <label>Email</label>
-                        {{ form.email }}
-                    </div>
-                
-                    <div class="mb-3">
-                        <label>Phone</label>
-                        {{ form.phone }}
-                    </div>
-                
-                    <div class="mb-3">
-                        <label>Date of Birth</label>
-                        {{ form.dob }}
-                    </div>
-                
-                    <div class="mb-3">
-                        <label>Address</label>
-                        {{ form.address }}
-                    </div>
-                
-                    <div class="mb-3">
-                        <label>Designation</label>
-                        {{ form.designation }}
-                    </div>
-                
-                    <div class="mb-3">
-                        <label>Profile Image</label>
-                        {{ form.profile_image }}
-                    </div>
-                
-                    <div class="mb-3">
-                        <label>Password</label>
-                        {{ form.password1 }}
-                    </div>
-                
-                    <div class="mb-3">
-                        <label>Confirm Password</label>
-                        {{ form.password2 }}
-                    </div>
-                
-                    {% if form.errors %}
-                        <div class="alert alert-danger small">
-                            {{ form.errors }}
+                    <div class="col-md-10 mx-auto">
+
+                        <div class="row mb-3 align-items-center">
+                            <label class="col-md-4 col-form-label">Username</label>
+                            <div class="col-md-8">
+                                {{ form.username }}
+                            </div>
                         </div>
-                    {% endif %}
-                
-                    <button type="submit" class="btn btn-primary w-100">
-                        Register Staff
-                    </button>
+                    
+                        <div class="row mb-3 align-items-center">
+                            <label class="col-md-4 col-form-label">Email</label>
+                            <div class="col-md-8">
+                                {{ form.email }}
+                            </div>
+                        </div>
+                    
+                        <div class="row mb-3 align-items-center">
+                            <label class="col-md-4 col-form-label">Phone</label>
+                            <div class="col-md-8">
+                                {{ form.phone }}
+                            </div>
+                        </div>
+                    
+                        <div class="row mb-3 align-items-center">
+                            <label class="col-md-4 col-form-label">Date of Birth</label>
+                            <div class="col-md-8">
+                                {{ form.dob }}
+                            </div>
+                        </div>
+                    
+                        <div class="row mb-3">
+                            <label class="col-md-4 col-form-label">Address</label>
+                            <div class="col-md-8">
+                                {{ form.address }}
+                            </div>
+                        </div>
+                    
+                    
+                        <div class="row mb-3 align-items-center">
+                            <label class="col-md-4 col-form-label">Profile Image</label>
+                            <div class="col-md-8">
+                                {{ form.profile_image }}
+                            </div>
+                        </div>
+                    
+                        <hr>
+                    
+                        <div class="row mb-3 align-items-center">
+                            <label class="col-md-4 col-form-label">Password</label>
+                            <div class="col-md-8">
+                                {{ form.password1 }}
+                            </div>
+                        </div>
+                    
+                        <div class="row mb-3 align-items-center">
+                            <label class="col-md-4 col-form-label">Confirm Password</label>
+                            <div class="col-md-8">
+                                {{ form.password2 }}
+                            </div>
+                        </div>
+                    
+                        {% if form.errors %}
+                            <div class="alert alert-danger small">
+                                {{ form.errors }}
+                            </div>
+                        {% endif %}
+                    
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-success px-4">
+                                Register Staff
+                            </button>
+                        </div>
+                    
+                    </div>
                 </form>
 
             </div>

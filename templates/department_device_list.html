@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Devices{% endblock %}
+
+{% block content %}
+
+<div class="table-page-layout table-page-container">
+<div class="table-page-panel">
+
+<h4 class="fw-bold text-center mb-4">
+    {{ department.department_name }} - {{ device_type }}
+</h4>
+
+{% if devices %}
+<div class="table-responsive">
+<table class="table table-bordered table-hover align-middle">
+
+<thead class="table-light">
+<tr>
+    <th>Label No</th>
+    <th>Brand</th>
+    <th>Model</th>
+    <th>Status</th>
+</tr>
+</thead>
+
+<tbody>
+{% for device in devices %}
+
+<tr onclick="window.location.href='{% url 'device_detail' device.device_id %}'"
+    style="cursor:pointer;">
+    
+    <td>{{ device.label_no }}</td>
+    <td>{{ device.device_brand }}</td>
+    <td>{{ device.device_model }}</td>
+    <td>
+        <span class="badge
+            {% if device.status == 'Working' %}bg-success
+            {% else %}bg-danger{% endif %}">
+            {{ device.status }}
+        </span>
+    </td>
+
+</tr>
+
+{% endfor %}
+</tbody>
+
+</table>
+</div>
+
+{% else %}
+<div class="alert alert-info text-center">
+    No devices found
+</div>
+{% endif %}
+
+<div class="text-center mt-3">
+    <a href="{% url 'download_department_devices_pdf' department.department_id device_type %}" 
+       class="btn btn-danger">
+        Download PDF
+    </a>
+</div>
+
+</div>
+</div>
+
+{% endblock %}

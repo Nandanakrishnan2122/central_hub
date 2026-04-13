@@ -7,7 +7,6 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="fw-bold mb-0">Department List</h4>
         <div class="d-flex gap-2">
-           
             <a href="{% url 'add_department' %}" class="btn btn-primary btn-sm">+ Add Department</a>
         </div>
     </div>
@@ -71,7 +70,11 @@
                 </thead>
                 <tbody>
                     {% for department in departments %}
-                    <tr>
+                    
+                    <!-- 🔥 ONLY CHANGE HERE -->
+                    <tr onclick="window.location.href='{% url 'department_devices' department.department_id %}'"
+                        style="cursor:pointer;">
+                        
                         <td>{{ forloop.counter }}</td>
                         <td>{{ department.department_name }}</td>
                         <td>
@@ -82,15 +85,19 @@
                             {% endif %}
                         </td>
                         <td class="text-center">
-                            <a href="{% url 'edit_department' department.department_id %}" class="btn btn-warning btn-sm">
+                            <a href="{% url 'edit_department' department.department_id %}" 
+                               class="btn btn-warning btn-sm"
+                               onclick="event.stopPropagation();">
                                 Edit
                             </a>
+
                             <form method="POST"
                                   action="{% url 'delete_department' department.department_id %}"
                                   style="display:inline;">
                                 {% csrf_token %}
                                 <button type="submit"
                                         class="btn btn-danger btn-sm"
+                                        onclick="event.stopPropagation();"
                                         data-confirm="true"
                                         data-confirm-message="Are you sure you want to delete this department?">
                                     Delete
@@ -98,6 +105,7 @@
                             </form>
                         </td>
                     </tr>
+
                     {% endfor %}
                 </tbody>
             </table>

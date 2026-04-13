@@ -38,14 +38,13 @@ const centerTextPlugin = {
 
         ctx.restore();
 
-        // Main percentage
         ctx.font = "700 20px sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillStyle = "#2f7b63";
+
         ctx.fillText(solvedPercent + "%", width / 2, height / 2 - 6);
 
-        // Subtitle
         ctx.font = "500 12px sans-serif";
         ctx.fillStyle = "#555";
         ctx.fillText("Solved", width / 2, height / 2 + 14);
@@ -56,17 +55,23 @@ const centerTextPlugin = {
 
 const ctx = document.getElementById('solvedChart');
 
-new Chart(ctx, {
+// 🔥 Start from tiny values
+const myChart = new Chart(ctx, {
     type: 'doughnut',
     data: {
         labels: ['Solved', 'Unsolved'],
         datasets: [{
-            data: [solved, unsolved],
+            data: [0.01, 0.01],  // 👈 start from a point
             backgroundColor: ['#2f7b63', '#dc3545']
         }]
     },
     options: {
         cutout: '70%',
+        rotation: -90,
+        animation: {
+            duration: 1200,
+            easing: 'easeOutCubic'
+        },
         plugins: {
             legend: {
                 position: 'bottom'
@@ -75,6 +80,13 @@ new Chart(ctx, {
     },
     plugins: [centerTextPlugin]
 });
+
+// 🔥 Animate to real values
+setTimeout(() => {
+    myChart.data.datasets[0].data = [solved, unsolved];
+    myChart.update();
+}, 100);
+
 </script>
 
 {% endblock %}

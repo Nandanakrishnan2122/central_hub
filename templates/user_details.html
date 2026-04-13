@@ -20,22 +20,36 @@
     {% endif %}
 </div>
 
-        <p><strong>Name:</strong> {{ user.username }}</p>
-        <p><strong>Email:</strong> {{ user.email }}</p>
-        <p><strong>Phone:</strong> {{ user.phone|default:"Not Provided" }}</p>
+<div class="row mt-4">
 
-        <p><strong>DOB:</strong>
-            {% if user.dob %}
-                {{ user.dob }}
-            {% else %}
-                Not Provided
-            {% endif %}
-        </p>
+    <div class="col-md-3 fw-semibold">Name</div>
+    <div class="col-md-9">{{ user.username }}</div>
 
-        <p><strong>Department:</strong> {{ user.department|default:"Not Assigned" }}</p>
-        <p><strong>Designation:</strong> {{ user.designation|default:"Not Assigned" }}</p>
+    <div class="col-md-3 fw-semibold">Email</div>
+    <div class="col-md-9">{{ user.email }}</div>
 
-        <p><strong>Address:</strong> {{ user.address|default:"Not Provided" }}</p>
+    <div class="col-md-3 fw-semibold">Phone</div>
+    <div class="col-md-9">{{ user.phone|default:"Not Provided" }}</div>
+
+    <div class="col-md-3 fw-semibold">DOB</div>
+    <div class="col-md-9">
+        {% if user.dob %}
+            {{ user.dob }}
+        {% else %}
+            Not Provided
+        {% endif %}
+    </div>
+
+    <div class="col-md-3 fw-semibold">Department</div>
+    <div class="col-md-9">{{ user.department|default:"Not Assigned" }}</div>
+
+    <div class="col-md-3 fw-semibold">Designation</div>
+    <div class="col-md-9">{{ user.designation|default:"Not Assigned" }}</div>
+
+    <div class="col-md-3 fw-semibold">Address</div>
+    <div class="col-md-9">{{ user.address|default:"Not Provided" }}</div>
+
+</div>
 
         
         <div class="text-center mt-3">
@@ -56,5 +70,10 @@
 
     </div>
 </div>
-
+<style>
+    .row > div {
+        padding: 8px 0;
+        border-bottom: 1px solid #f1f1f1;
+    }
+    </style>
 {% endblock %}

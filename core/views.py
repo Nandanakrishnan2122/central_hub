@@ -1020,9 +1020,8 @@ def download_solved_issue_list_pdf(request):
 # -------------------------
 # DEVICE_LIST
 # -------------------------
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.contrib.auth.decorators import login_required
-from core.models import Device
 
 @login_required
 def device_list(request):
@@ -1056,21 +1055,38 @@ def device_list(request):
             Q(device_type__device_type__icontains=search_query)
         )
 
-    # 📊 Total count before status filter
+    # 📊 Total count before filters
     total_devices = devices.count()
 
     # 🔎 Status filter
     status_filter = (request.GET.get("status") or "").strip()
     if status_filter not in {"Working", "Reported"}:
         status_filter = ""
+
     if status_filter:
         devices = devices.filter(status=status_filter)
+
+    # ✅ ADD THIS (TYPE FILTER)
+    type_filter = (request.GET.get("type") or "").strip()
+    if type_filter:
+        devices = devices.filter(device_type__device_type=type_filter)
+
+    # ✅ SORT BY DEVICE TYPE
+    devices = devices.order_by('device_type__device_type')
+
+    # ✅ COUNT PER DEVICE TYPE
+    device_type_counts = (
+        devices.values('device_type__device_type')
+        .annotate(count=Count('device_id'))
+        .order_by('device_type__device_type')
+    )
 
     return render(request, "device_list.html", {
         "devices": devices,
         "total_devices": total_devices,
         "current_status": status_filter,
         "search_query": search_query,
+        "device_type_counts": device_type_counts,
     })
 # -------------------------
 # DOWNLOAD_DEVICE_DETIALS__LIST_pdf 
@@ -1276,14 +1292,24 @@ def delete_issue(request, issue_id):
 
     issue = get_object_or_404(DeviceIssues, issue_id=issue_id)
     user = request.user
+    device = issue.device   # ✅ store device before deleting
 
     # 🔐 Role restriction
     if user.designation.designation.strip().lower() != "principal":
-        if issue.device.department != user.department:
+        if device.department != user.department:
             return redirect("issue_list")
 
     if request.method == "POST":
         issue.delete()
+
+        # ✅ CHECK if any active issues left for this device
+        remaining_issues = DeviceIssues.objects.filter(
+            device=device
+        ).exclude(status="Solved")
+
+        if not remaining_issues.exists():
+            device.status = "Working"
+            device.save()
 
     return redirect("issue_list")
 
@@ -1548,3 +1574,199 @@ def about(request):
     return render(request, "about.html", {
         "now": timezone.now()
     })
+
+
+from django.db.models import Count
+from django.shortcuts import render, get_object_or_404
+from .models import Department, Device
+
+def department_devices(request, department_id):
+    department = get_object_or_404(Department, department_id=department_id)
+
+    device_types = (
+        Device.objects
+        .filter(department=department)
+        .values('device_type__device_type')
+        .annotate(count=Count('device_id'))
+        .order_by('device_type__device_type')
+    )
+
+    return render(request, "department_devices.html", {
+        "department": department,
+        "device_types": device_types
+    })
+
+def department_devices_by_type(request, department_id, device_type):
+    department = get_object_or_404(Department, department_id=department_id)
+
+    devices = Device.objects.filter(
+        department=department,
+        device_type__device_type=device_type
+    )
+
+    return render(request, "department_device_list.html", {
+        "department": department,
+        "devices": devices,
+        "device_type": device_type
+    })
+
+
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from django.db.models import Count
+
+from .models import Department, Device
+
+
+def department_devices(request, department_id):
+    department = get_object_or_404(Department, department_id=department_id)
+
+    device_types = (
+        Device.objects
+        .filter(department=department)
+        .values('device_type__device_type')
+        .annotate(count=Count('device_id'))   # keep same as your working view
+        .order_by('device_type__device_type')
+    )
+
+    # 🔥 IF PDF REQUEST
+    if request.GET.get("download") == "pdf":
+        return generate_department_pdf(department, device_types)
+
+    return render(request, "department_devices.html", {
+        "department": department,
+        "device_types": device_types
+    })
+
+from django.http import HttpResponse
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet
+
+def generate_department_pdf(department, device_types):
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{department.department_name}_devices.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=letter)
+
+    styles = getSampleStyleSheet()
+
+    title = Paragraph(f"{department.department_name} - Device Types", styles['Title'])
+
+    data = [["Device Type", "Count"]]
+
+    for item in device_types:
+        data.append([
+            item['device_type__device_type'],
+            item['count']
+        ])
+
+    table = Table(data)
+
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.grey),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+        ('GRID', (0,0), (-1,-1), 1, colors.black),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+    ]))
+
+    doc.build([title, table])
+
+    return response
+
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from django.db.models import Count
+
+from .models import Department, Device
+
+
+def download_department_device_types_pdf(request, department_id):
+    department = get_object_or_404(Department, department_id=department_id)
+
+    device_types = (
+    Device.objects
+    .filter(department_id=department_id)   # 🔥 FIX HERE
+    .values('device_type__device_type')
+    .annotate(count=Count('device_id'))
+    .order_by('device_type__device_type')
+)
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{department.department_name}_devices.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=letter)
+
+    data = [["Device Type", "Count"]]
+
+    for item in device_types:
+        data.append([
+            item['device_type__device_type'],
+            item['count']
+        ])
+
+    table = Table(data)
+
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.grey),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+        ('GRID', (0,0), (-1,-1), 1, colors.black),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+    ]))
+
+    doc.build([table])
+
+    return response
+
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet
+
+
+def download_department_devices_pdf(request, department_id, device_type):
+
+    department = get_object_or_404(Department, department_id=department_id)
+
+    devices = Device.objects.filter(
+        department_id=department_id,
+        device_type__device_type=device_type
+    )
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{device_type}_devices.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=letter)
+
+    styles = getSampleStyleSheet()
+    title = Paragraph(f"{department.department_name} - {device_type}", styles['Title'])
+
+    data = [["Label No", "Brand", "Model", "Status"]]
+
+    for d in devices:
+        data.append([
+            d.label_no,
+            d.device_brand,
+            d.device_model,
+            d.status
+        ])
+
+    table = Table(data)
+
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.grey),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+        ('GRID', (0,0), (-1,-1), 1, colors.black),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+    ]))
+
+    doc.build([title, table])
+
+    return response

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Department Devices{% endblock %}
+
+{% block content %}
+
+<div class="table-page-layout table-page-container">
+<div class="table-page-panel">
+
+<h4 class="fw-bold text-center mb-4">
+    {{ department.department_name }} - Device Types
+</h4>
+
+{% if device_types %}
+<div class="table-responsive">
+<table class="table table-bordered table-hover align-middle">
+
+<thead class="table-light">
+<tr>
+    <th>Device Type</th>
+    <th>Count</th>
+</tr>
+</thead>
+
+<tbody>
+{% for item in device_types %}
+
+<tr onclick="window.location.href='{% url 'department_devices_by_type' department.department_id item.device_type__device_type %}'"
+    style="cursor:pointer;">
+    
+    <td>{{ item.device_type__device_type }}</td>
+    <td>{{ item.count }}</td>
+
+</tr>
+
+{% endfor %}
+</tbody>
+
+</table>
+</div>
+
+{% else %}
+<div class="alert alert-info text-center">
+    No devices in this department
+</div>
+{% endif %}
+
+<div class="text-center mt-3">
+    <a href="{% url 'department_list' %}" class="btn btn-secondary">Back</a>
+</div>
+<div class="text-center mt-3">
+    <a href="?download=pdf" class="btn btn-danger">
+        Download PDF
+    </a>
+</div>
+</div>
+</div>
+
+{% endblock %}

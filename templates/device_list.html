@@ -91,6 +91,7 @@
     padding-top:10px;
 }
 
+
 .device-grid{
     display:grid;
     grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
@@ -150,7 +151,39 @@
 <div class="device-scroll">
 
 {% if devices %}
+<div class="mb-3">
+    <h6 class="fw-bold mb-2">Devices by Type</h6>
 
+    <div class="d-flex flex-wrap gap-2">
+
+        <!-- 🔹 ALL -->
+        <a href="?search={{ search_query }}&status={{ current_status }}"
+           class="badge text-decoration-none 
+           {% if not request.GET.type %}
+               bg-dark text-white
+           {% else %}
+               bg-light text-dark border
+           {% endif %}">
+            All ({{ total_devices }})
+        </a>
+
+        {% for item in device_type_counts %}
+            <a href="?type={{ item.device_type__device_type }}&search={{ search_query }}&status={{ current_status }}"
+               class="badge text-decoration-none
+               {% if request.GET.type == item.device_type__device_type %}
+                   bg-primary text-white
+               {% else %}
+                   bg-light text-dark border
+               {% endif %}">
+               
+                {{ item.device_type__device_type }} ({{ item.count }})
+            </a>
+        {% empty %}
+            <span class="text-muted">No data</span>
+        {% endfor %}
+
+    </div>
+</div>
 <div class="device-grid">
 
 {% for device in devices %}

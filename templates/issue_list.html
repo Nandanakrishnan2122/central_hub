@@ -72,7 +72,9 @@
                 </thead>
                 <tbody>
                     {% for issue in issues %}
-                    <tr>
+                    <tr onclick="window.location.href='{% url 'issue_detail' issue.issue_id %}'"
+                        style="cursor:pointer;">
+                        
                         <td>{{ issue.device.label_no }}</td>
                         <td>{{ issue.issue_description }}</td>
                         <td>
@@ -86,21 +88,28 @@
                         <td>{{ issue.reported_by }}</td>
                         <td>{{ issue.report_date|date:"d M Y" }}</td>
                         <td class="text-center">
+
                             {% if issue.status != "Solved" %}
-                                <a href="{% url 'issue_solved' issue.issue_id %}" class="btn btn-success btn-sm mb-1">
+                                <a href="{% url 'issue_solved' issue.issue_id %}"
+                                   class="btn btn-success btn-sm mb-1"
+                                   onclick="event.stopPropagation();">
                                     Mark as Solved
                                 </a>
                             {% endif %}
 
-                            <form method="POST" action="{% url 'delete_issue' issue.issue_id %}" style="display:inline;">
+                            <form method="POST"
+                                  action="{% url 'delete_issue' issue.issue_id %}"
+                                  style="display:inline;">
                                 {% csrf_token %}
                                 <button type="submit"
                                         class="btn btn-danger btn-sm"
+                                        onclick="event.stopPropagation();"
                                         data-confirm="true"
                                         data-confirm-message="Are you sure you want to delete this issue?">
                                     Delete
                                 </button>
                             </form>
+
                         </td>
                     </tr>
                     {% endfor %}

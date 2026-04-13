@@ -25,10 +25,9 @@
 const chartData = JSON.parse('{{ chart_data|escapejs }}');
 
 const pending = chartData.pending;
-const progress = chartData.progress;
 const solved = chartData.solved;
 
-const total = pending + progress + solved;
+const total = pending + solved;
 const solvedPercent = total > 0 ? ((solved / total) * 100).toFixed(1) : 0;
 
 // 🔥 Center Text Plugin
@@ -39,7 +38,6 @@ const centerTextPlugin = {
 
         ctx.restore();
 
-        // Main percentage
         ctx.font = "700 20px sans-serif";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -47,7 +45,6 @@ const centerTextPlugin = {
 
         ctx.fillText(solvedPercent + "%", width / 2, height / 2 - 6);
 
-        // Subtitle
         ctx.font = "500 12px sans-serif";
         ctx.fillStyle = "#555";
         ctx.fillText("Solved", width / 2, height / 2 + 14);
@@ -58,17 +55,23 @@ const centerTextPlugin = {
 
 const ctx = document.getElementById('issueChart');
 
-new Chart(ctx, {
+// 🔥 Start from tiny values (for draw animation)
+const myChart = new Chart(ctx, {
     type: 'doughnut',
     data: {
-        labels: ['Pending', 'In Progress', 'Solved'],
+        labels: ['Pending', 'Solved'],
         datasets: [{
-            data: [pending, progress, solved],
-            backgroundColor: ['#2f7b63', '#17a2b8', '#dc3545']
+            data: [0.01, 0.01],
+            backgroundColor: ['#dc3545', '#2f7b63']
         }]
     },
     options: {
         cutout: '70%',
+        rotation: -90,
+        animation: {
+            duration: 1200,
+            easing: 'easeOutCubic'
+        },
         plugins: {
             legend: {
                 position: 'bottom'
@@ -77,6 +80,13 @@ new Chart(ctx, {
     },
     plugins: [centerTextPlugin]
 });
+
+// 🔥 Animate to real values
+setTimeout(() => {
+    myChart.data.datasets[0].data = [pending, solved];
+    myChart.update();
+}, 100);
+
 </script>
 
 {% endblock %}

@@ -11,7 +11,6 @@
     </div>
 </div>
 
-<!-- 🔥 Button -->
 <div class="text-center mt-4">
     <a href="{% url 'device_list' %}" 
        class="btn btn-outline-success px-4 shadow-sm">
@@ -20,62 +19,72 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
-const chartData = JSON.parse('{{ chart_data|escapejs }}');
-
-const working = chartData.working;
-const reported = chartData.reported;
-const total = working + reported;
-
-const workingPercent = total > 0 ? ((working / total) * 100).toFixed(1) : 0;
-
-// 🔥 Center Text Plugin
-const centerTextPlugin = {
-    id: 'centerText',
-    beforeDraw(chart) {
-        const { width, height, ctx } = chart;
-
-        ctx.restore();
-
-        // Main percentage
-        ctx.font = "700 20px sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillStyle = "#2f7b63";
-
-        ctx.fillText(workingPercent + "%", width / 2, height / 2 - 6);
-
-        // Subtitle
-        ctx.font = "500 12px sans-serif";
-        ctx.fillStyle = "#555";
-        ctx.fillText("Working", width / 2, height / 2 + 14);
-
-        ctx.save();
-    }
-};
-
-const ctx = document.getElementById('devicePieChart');
-
-new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-        labels: ['Working', 'Reported'],
-        datasets: [{
-            data: [working, reported],
-            backgroundColor: ['#2f7b63', '#dc3545']
-        }]
-    },
-    options: {
-        cutout: '70%',
-        plugins: {
-            legend: {
-                position: 'bottom'
-            }
+    const chartData = JSON.parse('{{ chart_data|escapejs }}');
+    
+    const working = chartData.working;
+    const reported = chartData.reported;
+    const total = working + reported;
+    
+    const workingPercent = total > 0 ? ((working / total) * 100).toFixed(1) : 0;
+    
+    // Center text plugin
+    const centerTextPlugin = {
+        id: 'centerText',
+        beforeDraw(chart) {
+            const { width, height, ctx } = chart;
+    
+            ctx.restore();
+    
+            ctx.font = "700 20px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = "#2f7b63";
+    
+            ctx.fillText(workingPercent + "%", width / 2, height / 2 - 6);
+    
+            ctx.font = "500 12px sans-serif";
+            ctx.fillStyle = "#555";
+            ctx.fillText("Working", width / 2, height / 2 + 14);
+    
+            ctx.save();
         }
-    },
-    plugins: [centerTextPlugin]
-});
-</script>
+    };
+    
+    const ctx = document.getElementById('devicePieChart');
+    
+    // 🔥 KEY TRICK: start with tiny values instead of full
+    const myChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Working', 'Reported'],
+            datasets: [{
+                data: [0.01, 0.01],  // 👈 start almost invisible
+                backgroundColor: ['#2f7b63', '#dc3545'],
+                hoverOffset: 12
+            }]
+        },
+        options: {
+            cutout: '70%',
+            rotation: -90,
+            animation: {
+                duration: 1200,
+                easing: 'easeOutCubic'
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        },
+        plugins: [centerTextPlugin]
+    });
+    
+    // 🔥 Animate to real values (this creates circular sweep)
+    setTimeout(() => {
+        myChart.data.datasets[0].data = [working, reported];
+        myChart.update();
+    }, 100);
+    </script>
 
 {% endblock %}
