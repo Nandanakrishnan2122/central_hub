@@ -1,14 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
-from .forms import RegisterForm ,DeviceForm
+#from .forms import RegisterForm ,DeviceForm
 from .models import (
     Department,
     Designation,
     User,
     DeviceType,
     DeviceSpecification,
-    TypeSpec,
     Device,
     DeviceLocation,
     DeviceIssues
@@ -22,28 +21,13 @@ from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from django.contrib import messages
 
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
-from django.contrib import messages
-
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
-from django.contrib import messages
-
-from django.contrib.auth import authenticate, login, logout
-from django.shortcuts import render, redirect
-from django.contrib import messages
-
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
-from django.contrib import messages
 
 def login_view(request):
 
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
-        role = (request.POST.get("role") or "").strip().lower()  # principal or staff
+        role = (request.POST.get("role") or "").strip().lower() 
 
         user = authenticate(request, username=username, password=password)
 
@@ -57,7 +41,7 @@ def login_view(request):
 
         user_role = user.designation.designation.strip().lower()
 
-        # Principal accounts can only use principal login.
+  
         if user_role == "principal":
             if role == "staff":
                 messages.error(request, "Please use Principal tab.")
@@ -65,7 +49,6 @@ def login_view(request):
             login(request, user)
             return redirect("dashboard")
 
-        # Non-principal accounts are treated as staff logins.
         login(request, user)
         return redirect("dashboard")
 
@@ -76,8 +59,6 @@ def logout_view(request):
     logout(request)
     return redirect("login")
 
-from django.shortcuts import render, redirect
-from django.contrib.auth import login
 from .forms import RegisterForm
 
 def register_view(request):
@@ -116,7 +97,7 @@ def dashboard(request):
         device_count = Device.objects.count()
         working_device_count = Device.objects.filter(status="Working").count()
 
-        # ✅ All active issues (not solved)
+     
         reported_issues = DeviceIssues.objects.exclude(status="Solved")
         issue_count = reported_issues.count()
 
@@ -198,14 +179,14 @@ from .models import Department
 def department_list(request):
     departments = Department.objects.all()
 
-    # 🔎 Search
+
     search_query = request.GET.get("search")
     if search_query:
         departments = departments.filter(
             Q(department_name__icontains=search_query)
         )
 
-    # 🔽 Sorting
+
     sort = request.GET.get("sort")
     if sort == "asc":
         departments = departments.order_by("department_name")
@@ -308,7 +289,7 @@ from django.contrib.auth.decorators import login_required
 def user_details(request, id):
     user_obj = get_object_or_404(User, user_id=id)
 
-    # 🔒 Security: user can only see own profile (optional but recommended)
+  
     if request.user.user_id != user_obj.user_id:
         return redirect('dashboard')
 
@@ -414,7 +395,7 @@ def download_device_report_history_pdf(request, device_id):
 
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Device
-from .forms import DeviceForm   # assuming you already have this
+from .forms import DeviceForm  
 
 def edit_device(request, pk):
     device = get_object_or_404(Device, device_id=pk)
@@ -452,23 +433,21 @@ def report_issue(request, device_id):
     device = get_object_or_404(Device, device_id=device_id)
     user = request.user
 
-    # 🔒 Permission Check
+ 
     if not user.designation:
         messages.error(request, "Access denied.")
         return redirect("device_list")
 
     user_role = user.designation.designation.strip().lower()
 
-    # 👨‍💼 Principal → Allowed for all
     if user_role != "principal":
 
-        # 👨‍🏫 Staff → Only own department + Office
+       
         if device.department != user.department and \
            device.department.department_name.lower() != "office":
             messages.error(request, "You are not allowed to report this device.")
             return redirect("device_list")
 
-    # ✅ Continue normal logic
     if request.method == "POST":
         form = ReportIssueForm(request.POST)
 
@@ -479,11 +458,10 @@ def report_issue(request, device_id):
             issue.status = "Reported"
             issue.save()
 
-            # 🔴 Update device status
+           
             device.status = "Reported"
             device.save()
 
-            # 🔔 Create Notification
             Notification.objects.create(
                 title="Issue Reported",
                 message=f"{user.username} reported issue for device {device.label_no}",
@@ -501,6 +479,8 @@ def report_issue(request, device_id):
         "device": device,
         "form": form
     })
+
+
 # -------------------------
 # ISSUE SOLVED 
 # -------------------------
@@ -522,7 +502,7 @@ def issue_solved(request, pk):
         issue.cost = request.POST.get("cost")
         issue.save()
 
-        # 🔔 Create Notification
+    
         Notification.objects.create(
             title="Issue Solved",
             message=f"Issue solved for device {issue.device.label_no}",
@@ -615,7 +595,6 @@ from django.db.models import Q
 def user_list(request):
     users = User.objects.all()
 
-    # 🔎 Search
     search_query = request.GET.get("search")
     if search_query:
         users = users.filter(
@@ -623,7 +602,7 @@ def user_list(request):
             Q(email__icontains=search_query)
         )
 
-    # 🔽 Sorting
+   
     sort = request.GET.get("sort")
     if sort == "asc":
         users = users.order_by("username")
@@ -683,7 +662,6 @@ def edit_user(request, pk):
         if form.is_valid():
             obj = form.save(commit=False)
 
-            # Only principal can change department
             if not (request.user.designation and request.user.designation.designation.lower() == "principal"):
                 obj.department = user.department
 
@@ -708,17 +686,14 @@ def issue_list(request):
     else:
         user_role = user.designation.designation.strip().lower()
 
-        # 👨‍💼 Principal → All active issues
         if user_role == "principal":
             issues = DeviceIssues.objects.exclude(status="Solved")
 
-        # 👨‍🏫 Staff → Only department active issues
         else:
             issues = DeviceIssues.objects.filter(
                 device__department=user.department
             ).exclude(status="Solved")
 
-    # 🔎 Search
     search_query = request.GET.get("search")
     if search_query:
         issues = issues.filter(
@@ -726,7 +701,6 @@ def issue_list(request):
             Q(device__label_no__icontains=search_query)
         )
 
-    # 🔽 Sorting
     sort = request.GET.get("sort")
 
     if sort == "date_asc":
@@ -752,24 +726,22 @@ def solved_issue_list(request):
 
     user = request.user
 
-    # 🔒 Base Query (Solved Only)
     if not user.designation:
         issues = DeviceIssues.objects.none()
     else:
         user_role = user.designation.designation.strip().lower()
 
-        # 👨‍💼 Principal → All solved issues
+    
         if user_role == "principal":
             issues = DeviceIssues.objects.filter(status="Solved")
 
-        # 👨‍🏫 Staff → Only department solved issues
+  
         else:
             issues = DeviceIssues.objects.filter(
                 status="Solved",
                 device__department=user.department
             )
 
-    # 🔎 Search
     search_query = request.GET.get("search")
     if search_query:
         issues = issues.filter(
@@ -1028,24 +1000,21 @@ def device_list(request):
 
     user = request.user
 
-    # Safety check
     if not user.designation:
         devices = Device.objects.none()
     else:
         user_role = user.designation.designation.strip().lower()
 
-        # 👨‍💼 PRINCIPAL → See all devices
         if user_role == "principal":
             devices = Device.objects.all()
 
-        # 👨‍🏫 STAFF → See own department + Office department
         else:
             devices = Device.objects.filter(
                 Q(department=user.department) |
                 Q(department__department_name__iexact="office")
             )
 
-    # 🔍 Search
+ 
     search_query = (request.GET.get("search") or "").strip()
     if search_query:
         devices = devices.filter(
@@ -1055,10 +1024,8 @@ def device_list(request):
             Q(device_type__device_type__icontains=search_query)
         )
 
-    # 📊 Total count before filters
     total_devices = devices.count()
 
-    # 🔎 Status filter
     status_filter = (request.GET.get("status") or "").strip()
     if status_filter not in {"Working", "Reported"}:
         status_filter = ""
@@ -1066,15 +1033,13 @@ def device_list(request):
     if status_filter:
         devices = devices.filter(status=status_filter)
 
-    # ✅ ADD THIS (TYPE FILTER)
     type_filter = (request.GET.get("type") or "").strip()
     if type_filter:
         devices = devices.filter(device_type__device_type=type_filter)
 
-    # ✅ SORT BY DEVICE TYPE
     devices = devices.order_by('device_type__device_type')
 
-    # ✅ COUNT PER DEVICE TYPE
+
     device_type_counts = (
         devices.values('device_type__device_type')
         .annotate(count=Count('device_id'))
@@ -1163,7 +1128,7 @@ from .models import DeviceIssues
 def download_issue_list_pdf(request):
     issues = DeviceIssues.objects.exclude(status="Solved")
 
-    # Apply search filter (same logic as page)
+ 
     search = request.GET.get('search')
     sort = request.GET.get('sort')
 
@@ -1292,9 +1257,9 @@ def delete_issue(request, issue_id):
 
     issue = get_object_or_404(DeviceIssues, issue_id=issue_id)
     user = request.user
-    device = issue.device   # ✅ store device before deleting
+    device = issue.device   
 
-    # 🔐 Role restriction
+   
     if user.designation.designation.strip().lower() != "principal":
         if device.department != user.department:
             return redirect("issue_list")
@@ -1302,7 +1267,6 @@ def delete_issue(request, issue_id):
     if request.method == "POST":
         issue.delete()
 
-        # ✅ CHECK if any active issues left for this device
         remaining_issues = DeviceIssues.objects.filter(
             device=device
         ).exclude(status="Solved")
@@ -1469,7 +1433,6 @@ from django.contrib import messages
 def delete_user(request, user_id):
     user_obj = get_object_or_404(User, user_id=user_id)
 
-    # 🔒 Prevent deleting Principal
     if user_obj.designation and user_obj.designation.designation.lower() == "principal":
         messages.error(request, "Principal account cannot be deleted.")
         return redirect("user_list")
@@ -1528,14 +1491,12 @@ from django.shortcuts import get_object_or_404
 @login_required
 def delete_device_type(request, id):
 
-    # 🔒 Principal only
     if not request.user.designation or request.user.designation.designation.lower() != "principal":
         messages.error(request, "Only Principal can delete device types.")
         return redirect("device_type_list")
 
     device_type = get_object_or_404(DeviceType, device_type_id=id)
 
-    # 🔥 Prevent delete if used in Device
     if Device.objects.filter(device_type=device_type).exists():
         messages.error(request, "Cannot delete. This type is already used by devices.")
         return redirect("device_type_list")
@@ -1557,7 +1518,6 @@ def notifications(request):
 
     notifications = Notification.objects.all().order_by("-created_at")
 
-    # ✅ Mark all as read
     notifications.filter(is_read=False).update(is_read=True)
 
     return render(request, "notifications.html", {
@@ -1632,7 +1592,6 @@ def department_devices(request, department_id):
         .order_by('device_type__device_type')
     )
 
-    # 🔥 IF PDF REQUEST
     if request.GET.get("download") == "pdf":
         return generate_department_pdf(department, device_types)
 

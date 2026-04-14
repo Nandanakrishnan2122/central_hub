@@ -40,7 +40,7 @@ urlpatterns = [
     path('department/<int:department_id>/<str:device_type>/devices-pdf/',views.download_department_devices_pdf,name='download_department_devices_pdf'),
     
     path('devices/', views.device_list, name='device_list'),
-    #path('device/<int:device_id>/', views.device_detail, name='device_detail'),
+  
     path('devices/add/', views.add_device, name='add_device'),
     
 

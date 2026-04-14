@@ -17,7 +17,7 @@ class Department(models.Model):
     null=True,
     blank=True,
     related_name="departments_in_charge",
-    to_field='user_id'   # ✅ ADD THIS
+    to_field='user_id'   
     )
 
     def __str__(self):
@@ -40,7 +40,7 @@ class Designation(models.Model):
 class User(AbstractUser):
     user_id = models.AutoField(primary_key=True)
 
-    email = models.EmailField(unique=False)  # ✅ MUST be present
+    email = models.EmailField(unique=False)  
 
     department = models.ForeignKey(
         Department,
@@ -86,12 +86,7 @@ class DeviceSpecification(models.Model):
         return self.specification
 
 
-# -------------------------
-# TYPE_SPEC (Mapping Table)
-# -------------------------
-class TypeSpec(models.Model):
-    device_type = models.ForeignKey(DeviceType, on_delete=models.CASCADE)
-    specification = models.ForeignKey(DeviceSpecification, on_delete=models.CASCADE)
+
 
 
 # -------------------------
@@ -116,7 +111,7 @@ class Device(models.Model):
     manufactured_year = models.PositiveIntegerField()
     purchased_date = models.DateField()
 
-    # ✅ FIXED STATUS FIELD
+
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -170,22 +165,13 @@ class DeviceIssues(models.Model):
     on_delete=models.SET_NULL,
     null=True,
     related_name="reported_device_issues",
-    to_field='user_id'   # ✅ ADD
+    to_field='user_id'   
     )
 
-    repaired_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="repaired_device_issues",
-        to_field='user_id'   # ✅ ADD
-    )
     issue_description = models.TextField()
 
     report_date = models.DateField(auto_now_add=True)
 
-    # 🔧 Repair / Solve Details
     repaired_date = models.DateField(null=True, blank=True)
     
     

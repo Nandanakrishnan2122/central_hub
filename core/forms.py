@@ -6,7 +6,6 @@ from .models import (
     User,
     DeviceType,
     DeviceSpecification,
-    TypeSpec,
     Device,
     DeviceLocation,
     DeviceIssues
@@ -86,12 +85,6 @@ class DeviceSpecificationForm(forms.ModelForm):
     class Meta:
         model = DeviceSpecification
         fields = ['specification']
-
-
-class TypeSpecForm(forms.ModelForm):
-    class Meta:
-        model = TypeSpec
-        fields = ['device_type', 'specification']
 
 
 class DeviceForm(forms.ModelForm):
