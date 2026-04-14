@@ -3,7 +3,18 @@
 
 {% block content %}
 
-<h4 class="fw-bold mb-4 text-center">Latest Notifications (30 Days)</h4>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold text-center mb-0 w-100">Latest Notifications (30 Days)</h4>
+
+    <!-- 🔥 Clear Only Current User -->
+    <form method="POST" action="{% url 'clear_notifications' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger btn-sm"
+                onclick="return confirm('Clear your notifications?');">
+            Clear All
+        </button>
+    </form>
+</div>
 
 {% if notifications %}
 <div class="table-responsive">
@@ -16,6 +27,7 @@
                 <th>Date</th>
                 <th>Status</th>
                 <th>Action</th>
+                <th>Delete</th> <!-- 🔥 NEW -->
             </tr>
         </thead>
         <tbody>
@@ -60,6 +72,18 @@
                         </a>
                     {% endif %}
                 </td>
+
+                <!-- 🔥 DELETE SINGLE -->
+                <td class="text-center">
+                    <form method="POST" action="{% url 'delete_notification' note.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                onclick="return confirm('Delete this notification?');">
+                            ✖
+                        </button>
+                    </form>
+                </td>
+
             </tr>
             {% endfor %}
         </tbody>

@@ -28,11 +28,7 @@
         <form method="post" enctype="multipart/form-data" class="card shadow-sm p-4">
             {% csrf_token %}
 
-            <div class="mb-3">
-                <label class="form-label">Device Label No</label>
-                {{ form.label_no }}
-            </div>
-
+            
             <div class="mb-3">
                 <label class="form-label">Device Type</label>
                 {{ form.device_type }}

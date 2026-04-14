@@ -59,24 +59,38 @@ def logout_view(request):
     logout(request)
     return redirect("login")
 
+<<<<<<< HEAD
 from .forms import RegisterForm
+=======
+
+# -------------------------
+# REGISTER
+# -------------------------
+from django.contrib import messages
+from .models import User
+>>>>>>> 0fd18cb (jih)
 
 def register_view(request):
 
     if request.method == 'POST':
-        form = RegisterForm(request.POST, request.FILES)   # ✅ FIX
+        form = RegisterForm(request.POST, request.FILES)
+
+        username = request.POST.get("username")
+
+        # 🔥 CHECK USER EXISTS
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "User already exists. Redirecting to login...")
+            return render(request, 'register.html', {'form': form})  # ❗ stay here
 
         if form.is_valid():
             user = form.save()
-
-            login(request, user)   # auto login
+            login(request, user)
             return redirect('dashboard')
 
     else:
         form = RegisterForm()
 
     return render(request, 'register.html', {'form': form})
-
 # -------------------------
 # DASHBOARD
 # -------------------------
@@ -215,17 +229,22 @@ def add_department(request):
 
         teacher = User.objects.get(pk=teacher_id) if teacher_id else None
 
-        Department.objects.create(
+        # 🔥 CREATE DEPARTMENT
+        department = Department.objects.create(
             department_name=name,
             teacher_in_charge=teacher
         )
+
+        # 🔥 ADD THIS BLOCK (ONLY CHANGE)
+        if teacher:
+            teacher.department = department
+            teacher.save()
 
         return redirect("department_list")
 
     return render(request, "add_department.html", {
         "teachers": teachers
     })
-
 
 
 # -------------------------
@@ -257,18 +276,29 @@ def edit_department(request, pk):
         department.department_name = request.POST.get('department_name')
         teacher_id = request.POST.get('teacher_in_charge')
 
-        department.teacher_in_charge = (
-            User.objects.get(pk=teacher_id) if teacher_id else None
-        )
+        old_teacher = department.teacher_in_charge   # 🔥 store old teacher
+
+        new_teacher = User.objects.get(pk=teacher_id) if teacher_id else None
+        department.teacher_in_charge = new_teacher
 
         department.save()
+
+        # 🔥 REMOVE department from old teacher
+        if old_teacher and old_teacher != new_teacher:
+            old_teacher.department = None
+            old_teacher.save()
+
+        # 🔥 ASSIGN department to new teacher
+        if new_teacher:
+            new_teacher.department = department
+            new_teacher.save()
+
         return redirect('department_list')
 
     return render(request, 'edit_department.html', {
         'department': department,
         'teachers': teachers
     })
-
 # -------------------------
 # USER_DETIALS
 # -------------------------
@@ -502,7 +532,22 @@ def issue_solved(request, pk):
         issue.cost = request.POST.get("cost")
         issue.save()
 
+<<<<<<< HEAD
     
+=======
+        # 🔥 ADD THIS BLOCK
+        device = issue.device
+
+        remaining_issues = DeviceIssues.objects.filter(
+            device=device
+        ).exclude(status="Solved")
+
+        if not remaining_issues.exists():
+            device.status = "Working"
+            device.save()
+
+        # 🔔 Notification
+>>>>>>> 0fd18cb (jih)
         Notification.objects.create(
             title="Issue Solved",
             message=f"Issue solved for device {issue.device.label_no}",
@@ -550,23 +595,59 @@ def index(request):
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .models import Notification
+from .models import Notification, Device
 from .forms import DeviceForm
+import re
 
 
 @login_required
 def add_device(request):
+
+    # 🔥 ACCESS CONTROL (ONLY ADD THIS BLOCK)
+    if not (
+    (request.user.designation and request.user.designation.designation.lower() == "principal")
+    or
+    (request.user.department and request.user == request.user.department.teacher_in_charge)
+):
+        messages.error(request, "Only principal or department in-charge can add devices.")
+        return redirect('device_list')
+
     if request.method == 'POST':
         form = DeviceForm(request.POST, request.FILES)
 
         if form.is_valid():
-            device = form.save()  
+            device = form.save(commit=False)   # 🔥 IMPORTANT CHANGE
+
+            # 🔥 AUTO LABEL GENERATION
+            def generate_short(text):
+                return ''.join(word[:3].upper() for word in text.split())
+
+            device_type_short = generate_short(device.device_type.device_type)
+            dept_short = generate_short(device.department.department_name)
+
+            prefix = f"{device_type_short}{dept_short}"
+
+            last_device = Device.objects.filter(
+                label_no__startswith=prefix
+            ).order_by('-device_id').first()
+
+            if last_device:
+                match = re.search(r'-(\d+)$', last_device.label_no)
+                number = int(match.group(1)) + 1 if match else 1
+            else:
+                number = 1
+
+            device.label_no = f"{prefix}-{number}"
+
+            device.save()   # 🔥 SAVE AFTER GENERATING LABEL
+
+            # ✅ Notification (UNCHANGED)
             Notification.objects.create(
-            title="New Device Added",
-            message=f"{request.user.username} added device {device.label_no}",
-            notification_type="DEVICE",
-            related_id=device.device_id
-        )
+                title="New Device Added",
+                message=f"{request.user.username} added device {device.label_no}",
+                notification_type="DEVICE",
+                related_id=device.device_id
+            )
 
             messages.success(request, "Device added successfully.")
             return redirect('device_list')
@@ -575,8 +656,6 @@ def add_device(request):
         form = DeviceForm()
 
     return render(request, 'add_device.html', {'form': form})
-
-
 # -------------------------
 #   DELETE_DEVICE
 # -------------------------
@@ -1181,22 +1260,23 @@ def download_issue_list_pdf(request):
 # DOWNLOAD_device_list_pdf 
 # -------------------------
 
-
 from django.http import HttpResponse
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
+from django.db.models import Q   # 🔥 ADD THIS
 from .models import Device
 
 
 def download_devices_pdf(request):
     status_filter = request.GET.get("status")
     search_query = request.GET.get("search")
+    device_type = request.GET.get("type")   # 🔥 ADD THIS
 
     devices = Device.objects.all()
 
+    # 🔍 Search filter
     if search_query:
         devices = devices.filter(
             Q(label_no__icontains=search_query) |
@@ -1205,6 +1285,11 @@ def download_devices_pdf(request):
             Q(device_type__device_type__icontains=search_query)
         )
 
+    # 🔥 TYPE FILTER (THIS IS YOUR FIX)
+    if device_type:
+        devices = devices.filter(device_type__device_type=device_type)
+
+    # 🔎 Status filter
     if status_filter == "Working":
         devices = devices.filter(status="Working")
     elif status_filter == "Reported":
@@ -1729,3 +1814,19 @@ def download_department_devices_pdf(request, department_id, device_type):
     doc.build([title, table])
 
     return response
+
+
+
+
+@login_required
+def clear_notifications(request):
+    if request.method == "POST":
+        Notification.objects.all().delete()   # 🔥 FIX
+    return redirect('notifications')
+
+
+@login_required
+def delete_notification(request, pk):
+    if request.method == "POST":
+        Notification.objects.filter(id=pk).delete()   # 🔥 FIX
+    return redirect('notifications')

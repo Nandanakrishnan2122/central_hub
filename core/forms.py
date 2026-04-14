@@ -88,6 +88,8 @@ class DeviceSpecificationForm(forms.ModelForm):
 
 
 class DeviceForm(forms.ModelForm):
+    label_no = forms.CharField(required=False)   # 🔥 ADD THIS LINE
+
     class Meta:
         model = Device
         fields = '__all__'
@@ -106,7 +108,6 @@ class DeviceForm(forms.ModelForm):
             'status': forms.TextInput(attrs={'class': 'form-control'}),
             'device_image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
-
 
 class DeviceLocationForm(forms.ModelForm):
     class Meta:

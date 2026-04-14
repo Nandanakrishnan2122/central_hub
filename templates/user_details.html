@@ -7,7 +7,7 @@
 <div class="container mt-4">
     <div class="card p-4 shadow-sm">
 
-        <h4 class="text-center mb-4">User Details</h4>
+        <h4 class="text-center mb-4">Profile</h4>
 
       <!-- Profile Image -->
 <div class="text-center mb-3">
@@ -31,14 +31,7 @@
     <div class="col-md-3 fw-semibold">Phone</div>
     <div class="col-md-9">{{ user.phone|default:"Not Provided" }}</div>
 
-    <div class="col-md-3 fw-semibold">DOB</div>
-    <div class="col-md-9">
-        {% if user.dob %}
-            {{ user.dob }}
-        {% else %}
-            Not Provided
-        {% endif %}
-    </div>
+   
 
     <div class="col-md-3 fw-semibold">Department</div>
     <div class="col-md-9">{{ user.department|default:"Not Assigned" }}</div>
@@ -46,8 +39,7 @@
     <div class="col-md-3 fw-semibold">Designation</div>
     <div class="col-md-9">{{ user.designation|default:"Not Assigned" }}</div>
 
-    <div class="col-md-3 fw-semibold">Address</div>
-    <div class="col-md-9">{{ user.address|default:"Not Provided" }}</div>
+   
 
 </div>
 

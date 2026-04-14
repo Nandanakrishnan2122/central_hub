@@ -13,9 +13,11 @@
             + Add Device Type
         </a>
 
-        <a href="{% url 'add_device' %}" class="btn btn-primary btn-sm">
-            + Add Device
-        </a>
+        {% if request.user.department and request.user.designation and request.user.designation.designation%}
+    <a href="{% url 'add_device' %}" class="btn btn-primary btn-sm">
+        + Add Device
+    </a>
+{% endif %}
     </div>
 </div>
 
@@ -240,21 +242,20 @@ No devices found.
 
 <!-- OLD FOOTER DOWNLOAD BUTTONS -->
 <div class="table-page-footer d-flex gap-2 flex-wrap justify-content-center">
-
-<a href="{% url 'download_devices_pdf' %}?search={{ search_query }}"
-   class="btn btn-outline-primary btn-sm">
-Download All
-</a>
-
-<a href="{% url 'download_devices_pdf' %}?search={{ search_query }}&status=Working"
-   class="btn btn-outline-success btn-sm">
-Download Working
-</a>
-
-<a href="{% url 'download_devices_pdf' %}?search={{ search_query }}&status=Reported"
-   class="btn btn-outline-danger btn-sm">
-Download Reported
-</a>
+    <a href="{% url 'download_devices_pdf' %}?{{ request.GET.urlencode }}"
+    class="btn btn-outline-primary btn-sm">
+ Download All
+ </a>
+ 
+ <a href="{% url 'download_devices_pdf' %}?{{ request.GET.urlencode }}&status=Working"
+    class="btn btn-outline-success btn-sm">
+ Download Working
+ </a>
+ 
+ <a href="{% url 'download_devices_pdf' %}?{{ request.GET.urlencode }}&status=Reported"
+    class="btn btn-outline-danger btn-sm">
+ Download Reported
+ </a>
 
 </div>
 

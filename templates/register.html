@@ -14,6 +14,15 @@
                     Create Staff Account
                 </h4>
 
+                <!-- 🔥 MESSAGE BLOCK ADDED -->
+                {% if messages %}
+                    <script>
+                        setTimeout(function(){
+                            window.location.href = "{% url 'login' %}";
+                        }, 5000);  // ⏱ 2 seconds
+                    </script>
+                {% endif %}
+
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                 
@@ -39,21 +48,6 @@
                                 {{ form.phone }}
                             </div>
                         </div>
-                    
-                        <div class="row mb-3 align-items-center">
-                            <label class="col-md-4 col-form-label">Date of Birth</label>
-                            <div class="col-md-8">
-                                {{ form.dob }}
-                            </div>
-                        </div>
-                    
-                        <div class="row mb-3">
-                            <label class="col-md-4 col-form-label">Address</label>
-                            <div class="col-md-8">
-                                {{ form.address }}
-                            </div>
-                        </div>
-                    
                     
                         <div class="row mb-3 align-items-center">
                             <label class="col-md-4 col-form-label">Profile Image</label>

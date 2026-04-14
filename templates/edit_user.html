@@ -12,47 +12,47 @@
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
 
+            <!-- Username -->
             <div class="row mb-3 align-items-center">
                 <label class="col-md-3 col-form-label">Username</label>
                 <div class="col-md-6">
                     {{ form.username }}
                 </div>
             </div>
-            
+
+            <!-- Email -->
             <div class="row mb-3 align-items-center">
                 <label class="col-md-3 col-form-label">Email</label>
                 <div class="col-md-6">
                     {{ form.email }}
                 </div>
             </div>
-            
+
+            <!-- Phone -->
             <div class="row mb-3 align-items-center">
                 <label class="col-md-3 col-form-label">Phone</label>
                 <div class="col-md-6">
                     {{ form.phone }}
                 </div>
             </div>
-            
-            <div class="row mb-3 align-items-center">
-                <label class="col-md-3 col-form-label">DOB</label>
-                <div class="col-md-6">
-                    {{ form.dob }}
-                </div>
-            </div>
-            
-            <div class="row mb-3">
-                <label class="col-md-3 col-form-label">Address</label>
-                <div class="col-md-6">
-                    {{ form.address }}
-                </div>
-            </div>
-            
+
+            <!-- Profile Image -->
             <div class="row mb-3 align-items-center">
                 <label class="col-md-3 col-form-label">Profile Image</label>
                 <div class="col-md-6">
                     {{ form.profile_image }}
                 </div>
             </div>
+
+            <!-- 🔥 DESIGNATION (ONLY FOR PRINCIPAL) -->
+            {% if request.user.designation and request.user.designation.designation|lower == "principal" %}
+            <div class="row mb-3 align-items-center">
+                <label class="col-md-3 col-form-label">Designation</label>
+                <div class="col-md-6">
+                    {{ form.designation }}
+                </div>
+            </div>
+            {% endif %}
 
             <div class="text-center mt-4">
                 <button type="submit" class="btn btn-success px-4">Update</button>
